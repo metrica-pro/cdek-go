@@ -58,6 +58,11 @@ const (
 	WebhookDtoTypeRECEIPT             WebhookDtoType = "RECEIPT"
 )
 
+// Defines values for GetOAuthTokenFormdataBodyGrantType.
+const (
+	GetOAuthTokenFormdataBodyGrantTypeClientCredentials GetOAuthTokenFormdataBodyGrantType = "client_credentials"
+)
+
 // AccompanyingWaybillDto Информация для сопроводительной накладной
 type AccompanyingWaybillDto struct {
 	// AirWaybillNumbers Накладные перевозчика для авиарейса
@@ -4145,10 +4150,18 @@ type SuggestCitiesParams struct {
 	CountryCode *string `form:"country_code,omitempty" json:"country_code,omitempty"`
 }
 
-// GetOAuthTokenParams defines parameters for GetOAuthToken.
-type GetOAuthTokenParams struct {
-	Request RequestDto `form:"request" json:"request"`
+// GetOAuthTokenFormdataBody defines parameters for GetOAuthToken.
+type GetOAuthTokenFormdataBody struct {
+	// ClientId Client ID
+	ClientId string `form:"client_id" json:"client_id"`
+
+	// ClientSecret Client Secret
+	ClientSecret string                             `form:"client_secret" json:"client_secret"`
+	GrantType    GetOAuthTokenFormdataBodyGrantType `form:"grant_type" json:"grant_type"`
 }
+
+// GetOAuthTokenFormdataBodyGrantType defines parameters for GetOAuthToken.
+type GetOAuthTokenFormdataBodyGrantType string
 
 // GetOrdersParams defines parameters for GetOrders.
 type GetOrdersParams struct {
@@ -4199,6 +4212,9 @@ type GetRegistriesParams struct {
 	// Date Дата, за которую необходимо вернуть реестры наложенных платежей, по которым был переведен наложенный платеж.
 	Date interface{} `form:"date" json:"date"`
 }
+
+// GetOAuthTokenFormdataRequestBody defines body for GetOAuthToken for application/x-www-form-urlencoded ContentType.
+type GetOAuthTokenFormdataRequestBody GetOAuthTokenFormdataBody
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
@@ -4336,8 +4352,10 @@ type ClientInterface interface {
 	// SuggestCities request
 	SuggestCities(ctx context.Context, params *SuggestCitiesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetOAuthToken request
-	GetOAuthToken(ctx context.Context, params *GetOAuthTokenParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// GetOAuthTokenWithBody request with any body
+	GetOAuthTokenWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	GetOAuthTokenWithFormdataBody(ctx context.Context, body GetOAuthTokenFormdataRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetOrders request
 	GetOrders(ctx context.Context, params *GetOrdersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -4667,8 +4685,20 @@ func (c *Client) SuggestCities(ctx context.Context, params *SuggestCitiesParams,
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetOAuthToken(ctx context.Context, params *GetOAuthTokenParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetOAuthTokenRequest(c.Server, params)
+func (c *Client) GetOAuthTokenWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetOAuthTokenRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetOAuthTokenWithFormdataBody(ctx context.Context, body GetOAuthTokenFormdataRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetOAuthTokenRequestWithFormdataBody(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -6394,8 +6424,19 @@ func NewSuggestCitiesRequest(server string, params *SuggestCitiesParams) (*http.
 	return req, nil
 }
 
-// NewGetOAuthTokenRequest generates requests for GetOAuthToken
-func NewGetOAuthTokenRequest(server string, params *GetOAuthTokenParams) (*http.Request, error) {
+// NewGetOAuthTokenRequestWithFormdataBody calls the generic GetOAuthToken builder with application/x-www-form-urlencoded body
+func NewGetOAuthTokenRequestWithFormdataBody(server string, body GetOAuthTokenFormdataRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	bodyStr, err := runtime.MarshalForm(body, nil)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = strings.NewReader(bodyStr.Encode())
+	return NewGetOAuthTokenRequestWithBody(server, "application/x-www-form-urlencoded", bodyReader)
+}
+
+// NewGetOAuthTokenRequestWithBody generates requests for GetOAuthToken with any type of body
+func NewGetOAuthTokenRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -6413,28 +6454,12 @@ func NewGetOAuthTokenRequest(server string, params *GetOAuthTokenParams) (*http.
 		return nil, err
 	}
 
-	if params != nil {
-		queryValues := queryURL.Query()
-
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "request", runtime.ParamLocationQuery, params.Request); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-			return nil, err
-		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
-			}
-		}
-
-		queryURL.RawQuery = queryValues.Encode()
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	req, err := http.NewRequest("POST", queryURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -7474,8 +7499,10 @@ type ClientWithResponsesInterface interface {
 	// SuggestCitiesWithResponse request
 	SuggestCitiesWithResponse(ctx context.Context, params *SuggestCitiesParams, reqEditors ...RequestEditorFn) (*SuggestCitiesResponse, error)
 
-	// GetOAuthTokenWithResponse request
-	GetOAuthTokenWithResponse(ctx context.Context, params *GetOAuthTokenParams, reqEditors ...RequestEditorFn) (*GetOAuthTokenResponse, error)
+	// GetOAuthTokenWithBodyWithResponse request with any body
+	GetOAuthTokenWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetOAuthTokenResponse, error)
+
+	GetOAuthTokenWithFormdataBodyWithResponse(ctx context.Context, body GetOAuthTokenFormdataRequestBody, reqEditors ...RequestEditorFn) (*GetOAuthTokenResponse, error)
 
 	// GetOrdersWithResponse request
 	GetOrdersWithResponse(ctx context.Context, params *GetOrdersParams, reqEditors ...RequestEditorFn) (*GetOrdersResponse, error)
@@ -8729,9 +8756,17 @@ func (c *ClientWithResponses) SuggestCitiesWithResponse(ctx context.Context, par
 	return ParseSuggestCitiesResponse(rsp)
 }
 
-// GetOAuthTokenWithResponse request returning *GetOAuthTokenResponse
-func (c *ClientWithResponses) GetOAuthTokenWithResponse(ctx context.Context, params *GetOAuthTokenParams, reqEditors ...RequestEditorFn) (*GetOAuthTokenResponse, error) {
-	rsp, err := c.GetOAuthToken(ctx, params, reqEditors...)
+// GetOAuthTokenWithBodyWithResponse request with arbitrary body returning *GetOAuthTokenResponse
+func (c *ClientWithResponses) GetOAuthTokenWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetOAuthTokenResponse, error) {
+	rsp, err := c.GetOAuthTokenWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetOAuthTokenResponse(rsp)
+}
+
+func (c *ClientWithResponses) GetOAuthTokenWithFormdataBodyWithResponse(ctx context.Context, body GetOAuthTokenFormdataRequestBody, reqEditors ...RequestEditorFn) (*GetOAuthTokenResponse, error) {
+	rsp, err := c.GetOAuthTokenWithFormdataBody(ctx, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
