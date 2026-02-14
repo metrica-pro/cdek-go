@@ -1,0 +1,8 @@
+package: cdek
+generate:
+  models: true
+  client: true
+  embedded-spec: false
+output: pkg/cdek/client.go
+output-options:
+  skip-prune: true

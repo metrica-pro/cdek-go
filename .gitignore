@@ -1,0 +1,67 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool
+*.out
+coverage.html
+coverage.out
+
+# Dependency directories
+vendor/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Application
+cdek-client
+dist/
+
+# Docker
+.dockerignore
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# Build output
+bin/
+build/
+
+# Go workspace file
+go.work
+
+# IDE specific
+.vscode/settings.json
+.vscode/launch.json
+.idea/workspace.xml
+
+# Build cache
+*.o
+*.a
+*.o.d
+
+# Protocol buffer files
+*.pb.go
+*.pb.gw.go
+
+# Generated OpenAPI files (if not using committed version)
+# pkg/cdek/client.go  # Keep committed in version control
