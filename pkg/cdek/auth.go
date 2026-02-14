@@ -17,9 +17,10 @@ type TokenResponse struct {
 
 // AuthenticatedClient клиент с автоматической OAuth2 авторизацией
 type AuthenticatedClient struct {
-	config     *AccountConfig
-	client     *Client
-	httpClient *http.Client
+	config              *AccountConfig
+	client              *Client
+	clientWithResponses *ClientWithResponses
+	httpClient          *http.Client
 
 	// Компоненты (camelCase по регламенту 4.6)
 	cache   *tokenCache
@@ -45,13 +46,19 @@ func NewAuthenticatedClient(config *AccountConfig) (*AuthenticatedClient, error)
 		return nil, fmt.Errorf("failed to create client: %w", err)
 	}
 
+	clientWithResponses, err := NewClientWithResponses(config.BaseURL, WithHTTPClient(httpClient))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create client with responses: %w", err)
+	}
+
 	return &AuthenticatedClient{
-		config:     config,
-		client:     client,
-		httpClient: httpClient,
-		cache:      newTokenCache(),
-		parser:     newResponseParser(),
-		builder:    newRequestBuilder(config.BaseURL),
+		config:              config,
+		client:              client,
+		clientWithResponses: clientWithResponses,
+		httpClient:          httpClient,
+		cache:               newTokenCache(),
+		parser:              newResponseParser(),
+		builder:             newRequestBuilder(config.BaseURL),
 	}, nil
 }
 
@@ -123,4 +130,9 @@ func (a *AuthenticatedClient) DoWithResponse(ctx context.Context, method, path s
 	}
 
 	return a.parser.parse(resp, result)
+}
+
+// ClientWithResponses возвращает клиент с typed responses
+func (a *AuthenticatedClient) ClientWithResponses() *ClientWithResponses {
+	return a.clientWithResponses
 }

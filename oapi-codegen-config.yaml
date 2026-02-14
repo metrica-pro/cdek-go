@@ -6,3 +6,5 @@ generate:
 output: pkg/cdek/client.go
 output-options:
   skip-prune: true
+compatibility:
+  always-prefix-enum-values: true

@@ -22,40 +22,40 @@ const (
 
 // Defines values for AlertDtoType.
 const (
-	Danger  AlertDtoType = "danger"
-	Info    AlertDtoType = "info"
-	Success AlertDtoType = "success"
-	Warning AlertDtoType = "warning"
+	AlertDtoTypeDanger  AlertDtoType = "danger"
+	AlertDtoTypeInfo    AlertDtoType = "info"
+	AlertDtoTypeSuccess AlertDtoType = "success"
+	AlertDtoTypeWarning AlertDtoType = "warning"
 )
 
 // Defines values for RequestInfoDtoState.
 const (
-	ACCEPTED   RequestInfoDtoState = "ACCEPTED"
-	INVALID    RequestInfoDtoState = "INVALID"
-	SUCCESSFUL RequestInfoDtoState = "SUCCESSFUL"
+	RequestInfoDtoStateACCEPTED   RequestInfoDtoState = "ACCEPTED"
+	RequestInfoDtoStateINVALID    RequestInfoDtoState = "INVALID"
+	RequestInfoDtoStateSUCCESSFUL RequestInfoDtoState = "SUCCESSFUL"
 )
 
 // Defines values for RequestInfoDtoType.
 const (
-	AUTH   RequestInfoDtoType = "AUTH"
-	CREATE RequestInfoDtoType = "CREATE"
-	DELETE RequestInfoDtoType = "DELETE"
-	GET    RequestInfoDtoType = "GET"
-	UPDATE RequestInfoDtoType = "UPDATE"
+	RequestInfoDtoTypeAUTH   RequestInfoDtoType = "AUTH"
+	RequestInfoDtoTypeCREATE RequestInfoDtoType = "CREATE"
+	RequestInfoDtoTypeDELETE RequestInfoDtoType = "DELETE"
+	RequestInfoDtoTypeGET    RequestInfoDtoType = "GET"
+	RequestInfoDtoTypeUPDATE RequestInfoDtoType = "UPDATE"
 )
 
 // Defines values for WebhookDtoType.
 const (
-	ACCOMPANYINGWAYBILL WebhookDtoType = "ACCOMPANYING_WAYBILL"
-	COURIERINFO         WebhookDtoType = "COURIER_INFO"
-	DELIVAGREEMENT      WebhookDtoType = "DELIV_AGREEMENT"
-	DELIVPROBLEM        WebhookDtoType = "DELIV_PROBLEM"
-	OFFICEAVAILABILITY  WebhookDtoType = "OFFICE_AVAILABILITY"
-	ORDERMODIFIED       WebhookDtoType = "ORDER_MODIFIED"
-	ORDERSTATUS         WebhookDtoType = "ORDER_STATUS"
-	PREALERTCLOSED      WebhookDtoType = "PREALERT_CLOSED"
-	PRINTFORM           WebhookDtoType = "PRINT_FORM"
-	RECEIPT             WebhookDtoType = "RECEIPT"
+	WebhookDtoTypeACCOMPANYINGWAYBILL WebhookDtoType = "ACCOMPANYING_WAYBILL"
+	WebhookDtoTypeCOURIERINFO         WebhookDtoType = "COURIER_INFO"
+	WebhookDtoTypeDELIVAGREEMENT      WebhookDtoType = "DELIV_AGREEMENT"
+	WebhookDtoTypeDELIVPROBLEM        WebhookDtoType = "DELIV_PROBLEM"
+	WebhookDtoTypeOFFICEAVAILABILITY  WebhookDtoType = "OFFICE_AVAILABILITY"
+	WebhookDtoTypeORDERMODIFIED       WebhookDtoType = "ORDER_MODIFIED"
+	WebhookDtoTypeORDERSTATUS         WebhookDtoType = "ORDER_STATUS"
+	WebhookDtoTypePREALERTCLOSED      WebhookDtoType = "PREALERT_CLOSED"
+	WebhookDtoTypePRINTFORM           WebhookDtoType = "PRINT_FORM"
+	WebhookDtoTypeRECEIPT             WebhookDtoType = "RECEIPT"
 )
 
 // AccompanyingWaybillDto Информация для сопроводительной накладной
@@ -3941,8 +3941,8 @@ type TariffListParams struct {
 	DeveloperKey interface{} `json:"developer-key,omitempty"`
 }
 
-// Get7Params defines parameters for Get7.
-type Get7Params struct {
+// GetCheckParams defines parameters for GetCheck.
+type GetCheckParams struct {
 	// OrderUuid Идентификатор заказа в ИС СДЭК, по которому необходимо получить чек. Обязательно, если не переданы остальные параметры
 	OrderUuid interface{} `form:"order_uuid,omitempty" json:"order_uuid,omitempty"`
 
@@ -3962,8 +3962,8 @@ type GetIntervalsParams struct {
 	OrderUuid interface{} `form:"order_uuid,omitempty" json:"order_uuid,omitempty"`
 }
 
-// SearchParams defines parameters for Search.
-type SearchParams struct {
+// GetDeliverypointsParams defines parameters for GetDeliverypoints.
+type GetDeliverypointsParams struct {
 	// Code Код ПВЗ
 	Code interface{} `form:"code,omitempty" json:"code,omitempty"`
 
@@ -4150,8 +4150,8 @@ type GetOAuthTokenParams struct {
 	Request RequestDto `form:"request" json:"request"`
 }
 
-// GetParams defines parameters for Get.
-type GetParams struct {
+// GetOrdersParams defines parameters for GetOrders.
+type GetOrdersParams struct {
 	// CdekNumber Номер заказа СДЭК, по которому необходима информация
 	CdekNumber interface{} `form:"cdek_number,omitempty" json:"cdek_number,omitempty"`
 
@@ -4164,8 +4164,8 @@ type UpdateParams struct {
 	DeveloperKey interface{} `json:"developer-key,omitempty"`
 }
 
-// Register1Params defines parameters for Register1.
-type Register1Params struct {
+// CreateOrderParams defines parameters for CreateOrder.
+type CreateOrderParams struct {
 	DeveloperKey interface{} `json:"developer-key,omitempty"`
 }
 
@@ -4175,8 +4175,8 @@ type GetIntakesParams struct {
 	Uuid interface{} `form:"uuid,omitempty" json:"uuid,omitempty"`
 }
 
-// Get6Params defines parameters for Get6.
-type Get6Params struct {
+// GetPassportParams defines parameters for GetPassport.
+type GetPassportParams struct {
 	// CdekNumber Номер заказа
 	CdekNumber interface{} `form:"cdek_number,omitempty" json:"cdek_number,omitempty"`
 
@@ -4188,14 +4188,14 @@ type Get6Params struct {
 	Client interface{} `form:"client,omitempty" json:"client,omitempty"`
 }
 
-// Get5Params defines parameters for Get5.
-type Get5Params struct {
+// GetPaymentParams defines parameters for GetPayment.
+type GetPaymentParams struct {
 	// Date Дата, за которую необходимо вернуть список заказов, по которым был переведен наложенный платеж
 	Date interface{} `form:"date" json:"date"`
 }
 
-// Get4Params defines parameters for Get4.
-type Get4Params struct {
+// GetRegistriesParams defines parameters for GetRegistries.
+type GetRegistriesParams struct {
 	// Date Дата, за которую необходимо вернуть реестры наложенных платежей, по которым был переведен наложенный платеж.
 	Date interface{} `form:"date" json:"date"`
 }
@@ -4285,11 +4285,11 @@ type ClientInterface interface {
 	// TariffListWithBody request with any body
 	TariffListWithBody(ctx context.Context, params *TariffListParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// Get7 request
-	Get7(ctx context.Context, params *Get7Params, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// GetCheck request
+	GetCheck(ctx context.Context, params *GetCheckParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// Register2WithBody request with any body
-	Register2WithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// CreateDeliveryWithBody request with any body
+	CreateDeliveryWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetEstimatedIntervalsWithBody request with any body
 	GetEstimatedIntervalsWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -4297,17 +4297,17 @@ type ClientInterface interface {
 	// GetIntervals request
 	GetIntervals(ctx context.Context, params *GetIntervalsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// Get3 request
-	Get3(ctx context.Context, uuid interface{}, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// GetDelivery request
+	GetDelivery(ctx context.Context, uuid interface{}, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// Search request
-	Search(ctx context.Context, params *SearchParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// GetDeliverypoints request
+	GetDeliverypoints(ctx context.Context, params *GetDeliverypointsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ChangeStatusWithBody request with any body
 	ChangeStatusWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// CreateWithBody request with any body
-	CreateWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// CreateIntakeWithBody request with any body
+	CreateIntakeWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetAvailableDaysWithBody request with any body
 	GetAvailableDaysWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -4339,14 +4339,14 @@ type ClientInterface interface {
 	// GetOAuthToken request
 	GetOAuthToken(ctx context.Context, params *GetOAuthTokenParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// Get request
-	Get(ctx context.Context, params *GetParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// GetOrders request
+	GetOrders(ctx context.Context, params *GetOrdersParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// UpdateWithBody request with any body
 	UpdateWithBody(ctx context.Context, params *UpdateParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// Register1WithBody request with any body
-	Register1WithBody(ctx context.Context, params *Register1Params, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// CreateOrderWithBody request with any body
+	CreateOrderWithBody(ctx context.Context, params *CreateOrderParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetIntakes request
 	GetIntakes(ctx context.Context, orderUuid interface{}, params *GetIntakesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -4354,8 +4354,8 @@ type ClientInterface interface {
 	// Delete request
 	Delete(ctx context.Context, uuid interface{}, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// Get2 request
-	Get2(ctx context.Context, uuid interface{}, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// GetOrder request
+	GetOrder(ctx context.Context, uuid interface{}, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ClientReturnWithBody request with any body
 	ClientReturnWithBody(ctx context.Context, uuid interface{}, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -4363,11 +4363,11 @@ type ClientInterface interface {
 	// Refuse request
 	Refuse(ctx context.Context, uuid interface{}, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// Get6 request
-	Get6(ctx context.Context, params *Get6Params, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// GetPassport request
+	GetPassport(ctx context.Context, params *GetPassportParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// Get5 request
-	Get5(ctx context.Context, params *Get5Params, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// GetPayment request
+	GetPayment(ctx context.Context, params *GetPaymentParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetReadyOrdersWithBody request with any body
 	GetReadyOrdersWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -4375,8 +4375,8 @@ type ClientInterface interface {
 	// RegisterWithBody request with any body
 	RegisterWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// Get1 request
-	Get1(ctx context.Context, uuid interface{}, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// GetPrealert request
+	GetPrealert(ctx context.Context, uuid interface{}, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// BarcodePrintWithBody request with any body
 	BarcodePrintWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -4396,8 +4396,8 @@ type ClientInterface interface {
 	// WaybillDownload request
 	WaybillDownload(ctx context.Context, uuid interface{}, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// Get4 request
-	Get4(ctx context.Context, params *Get4Params, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// GetRegistries request
+	GetRegistries(ctx context.Context, params *GetRegistriesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// CheckAvailabilityWithBody request with any body
 	CheckAvailabilityWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -4463,8 +4463,8 @@ func (c *Client) TariffListWithBody(ctx context.Context, params *TariffListParam
 	return c.Client.Do(req)
 }
 
-func (c *Client) Get7(ctx context.Context, params *Get7Params, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGet7Request(c.Server, params)
+func (c *Client) GetCheck(ctx context.Context, params *GetCheckParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetCheckRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -4475,8 +4475,8 @@ func (c *Client) Get7(ctx context.Context, params *Get7Params, reqEditors ...Req
 	return c.Client.Do(req)
 }
 
-func (c *Client) Register2WithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewRegister2RequestWithBody(c.Server, contentType, body)
+func (c *Client) CreateDeliveryWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateDeliveryRequestWithBody(c.Server, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -4511,8 +4511,8 @@ func (c *Client) GetIntervals(ctx context.Context, params *GetIntervalsParams, r
 	return c.Client.Do(req)
 }
 
-func (c *Client) Get3(ctx context.Context, uuid interface{}, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGet3Request(c.Server, uuid)
+func (c *Client) GetDelivery(ctx context.Context, uuid interface{}, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetDeliveryRequest(c.Server, uuid)
 	if err != nil {
 		return nil, err
 	}
@@ -4523,8 +4523,8 @@ func (c *Client) Get3(ctx context.Context, uuid interface{}, reqEditors ...Reque
 	return c.Client.Do(req)
 }
 
-func (c *Client) Search(ctx context.Context, params *SearchParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewSearchRequest(c.Server, params)
+func (c *Client) GetDeliverypoints(ctx context.Context, params *GetDeliverypointsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetDeliverypointsRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -4547,8 +4547,8 @@ func (c *Client) ChangeStatusWithBody(ctx context.Context, contentType string, b
 	return c.Client.Do(req)
 }
 
-func (c *Client) CreateWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewCreateRequestWithBody(c.Server, contentType, body)
+func (c *Client) CreateIntakeWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateIntakeRequestWithBody(c.Server, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -4679,8 +4679,8 @@ func (c *Client) GetOAuthToken(ctx context.Context, params *GetOAuthTokenParams,
 	return c.Client.Do(req)
 }
 
-func (c *Client) Get(ctx context.Context, params *GetParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetRequest(c.Server, params)
+func (c *Client) GetOrders(ctx context.Context, params *GetOrdersParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetOrdersRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -4703,8 +4703,8 @@ func (c *Client) UpdateWithBody(ctx context.Context, params *UpdateParams, conte
 	return c.Client.Do(req)
 }
 
-func (c *Client) Register1WithBody(ctx context.Context, params *Register1Params, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewRegister1RequestWithBody(c.Server, params, contentType, body)
+func (c *Client) CreateOrderWithBody(ctx context.Context, params *CreateOrderParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewCreateOrderRequestWithBody(c.Server, params, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -4739,8 +4739,8 @@ func (c *Client) Delete(ctx context.Context, uuid interface{}, reqEditors ...Req
 	return c.Client.Do(req)
 }
 
-func (c *Client) Get2(ctx context.Context, uuid interface{}, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGet2Request(c.Server, uuid)
+func (c *Client) GetOrder(ctx context.Context, uuid interface{}, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetOrderRequest(c.Server, uuid)
 	if err != nil {
 		return nil, err
 	}
@@ -4775,8 +4775,8 @@ func (c *Client) Refuse(ctx context.Context, uuid interface{}, reqEditors ...Req
 	return c.Client.Do(req)
 }
 
-func (c *Client) Get6(ctx context.Context, params *Get6Params, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGet6Request(c.Server, params)
+func (c *Client) GetPassport(ctx context.Context, params *GetPassportParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetPassportRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -4787,8 +4787,8 @@ func (c *Client) Get6(ctx context.Context, params *Get6Params, reqEditors ...Req
 	return c.Client.Do(req)
 }
 
-func (c *Client) Get5(ctx context.Context, params *Get5Params, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGet5Request(c.Server, params)
+func (c *Client) GetPayment(ctx context.Context, params *GetPaymentParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetPaymentRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -4823,8 +4823,8 @@ func (c *Client) RegisterWithBody(ctx context.Context, contentType string, body 
 	return c.Client.Do(req)
 }
 
-func (c *Client) Get1(ctx context.Context, uuid interface{}, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGet1Request(c.Server, uuid)
+func (c *Client) GetPrealert(ctx context.Context, uuid interface{}, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetPrealertRequest(c.Server, uuid)
 	if err != nil {
 		return nil, err
 	}
@@ -4907,8 +4907,8 @@ func (c *Client) WaybillDownload(ctx context.Context, uuid interface{}, reqEdito
 	return c.Client.Do(req)
 }
 
-func (c *Client) Get4(ctx context.Context, params *Get4Params, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGet4Request(c.Server, params)
+func (c *Client) GetRegistries(ctx context.Context, params *GetRegistriesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetRegistriesRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -5154,8 +5154,8 @@ func NewTariffListRequestWithBody(server string, params *TariffListParams, conte
 	return req, nil
 }
 
-// NewGet7Request generates requests for Get7
-func NewGet7Request(server string, params *Get7Params) (*http.Request, error) {
+// NewGetCheckRequest generates requests for GetCheck
+func NewGetCheckRequest(server string, params *GetCheckParams) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -5223,8 +5223,8 @@ func NewGet7Request(server string, params *Get7Params) (*http.Request, error) {
 	return req, nil
 }
 
-// NewRegister2RequestWithBody generates requests for Register2 with any type of body
-func NewRegister2RequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+// NewCreateDeliveryRequestWithBody generates requests for CreateDelivery with any type of body
+func NewCreateDeliveryRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -5338,8 +5338,8 @@ func NewGetIntervalsRequest(server string, params *GetIntervalsParams) (*http.Re
 	return req, nil
 }
 
-// NewGet3Request generates requests for Get3
-func NewGet3Request(server string, uuid interface{}) (*http.Request, error) {
+// NewGetDeliveryRequest generates requests for GetDelivery
+func NewGetDeliveryRequest(server string, uuid interface{}) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -5372,8 +5372,8 @@ func NewGet3Request(server string, uuid interface{}) (*http.Request, error) {
 	return req, nil
 }
 
-// NewSearchRequest generates requests for Search
-func NewSearchRequest(server string, params *SearchParams) (*http.Request, error) {
+// NewGetDeliverypointsRequest generates requests for GetDeliverypoints
+func NewGetDeliverypointsRequest(server string, params *GetDeliverypointsParams) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -5722,8 +5722,8 @@ func NewChangeStatusRequestWithBody(server string, contentType string, body io.R
 	return req, nil
 }
 
-// NewCreateRequestWithBody generates requests for Create with any type of body
-func NewCreateRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+// NewCreateIntakeRequestWithBody generates requests for CreateIntake with any type of body
+func NewCreateIntakeRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -6439,8 +6439,8 @@ func NewGetOAuthTokenRequest(server string, params *GetOAuthTokenParams) (*http.
 	return req, nil
 }
 
-// NewGetRequest generates requests for Get
-func NewGetRequest(server string, params *GetParams) (*http.Request, error) {
+// NewGetOrdersRequest generates requests for GetOrders
+func NewGetOrdersRequest(server string, params *GetOrdersParams) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -6538,8 +6538,8 @@ func NewUpdateRequestWithBody(server string, params *UpdateParams, contentType s
 	return req, nil
 }
 
-// NewRegister1RequestWithBody generates requests for Register1 with any type of body
-func NewRegister1RequestWithBody(server string, params *Register1Params, contentType string, body io.Reader) (*http.Request, error) {
+// NewCreateOrderRequestWithBody generates requests for CreateOrder with any type of body
+func NewCreateOrderRequestWithBody(server string, params *CreateOrderParams, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -6666,8 +6666,8 @@ func NewDeleteRequest(server string, uuid interface{}) (*http.Request, error) {
 	return req, nil
 }
 
-// NewGet2Request generates requests for Get2
-func NewGet2Request(server string, uuid interface{}) (*http.Request, error) {
+// NewGetOrderRequest generates requests for GetOrder
+func NewGetOrderRequest(server string, uuid interface{}) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -6770,8 +6770,8 @@ func NewRefuseRequest(server string, uuid interface{}) (*http.Request, error) {
 	return req, nil
 }
 
-// NewGet6Request generates requests for Get6
-func NewGet6Request(server string, params *Get6Params) (*http.Request, error) {
+// NewGetPassportRequest generates requests for GetPassport
+func NewGetPassportRequest(server string, params *GetPassportParams) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -6839,8 +6839,8 @@ func NewGet6Request(server string, params *Get6Params) (*http.Request, error) {
 	return req, nil
 }
 
-// NewGet5Request generates requests for Get5
-func NewGet5Request(server string, params *Get5Params) (*http.Request, error) {
+// NewGetPaymentRequest generates requests for GetPayment
+func NewGetPaymentRequest(server string, params *GetPaymentParams) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -6942,8 +6942,8 @@ func NewRegisterRequestWithBody(server string, contentType string, body io.Reade
 	return req, nil
 }
 
-// NewGet1Request generates requests for Get1
-func NewGet1Request(server string, uuid interface{}) (*http.Request, error) {
+// NewGetPrealertRequest generates requests for GetPrealert
+func NewGetPrealertRequest(server string, uuid interface{}) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -7170,8 +7170,8 @@ func NewWaybillDownloadRequest(server string, uuid interface{}) (*http.Request, 
 	return req, nil
 }
 
-// NewGet4Request generates requests for Get4
-func NewGet4Request(server string, params *Get4Params) (*http.Request, error) {
+// NewGetRegistriesRequest generates requests for GetRegistries
+func NewGetRegistriesRequest(server string, params *GetRegistriesParams) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -7423,11 +7423,11 @@ type ClientWithResponsesInterface interface {
 	// TariffListWithBodyWithResponse request with any body
 	TariffListWithBodyWithResponse(ctx context.Context, params *TariffListParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TariffListResponse, error)
 
-	// Get7WithResponse request
-	Get7WithResponse(ctx context.Context, params *Get7Params, reqEditors ...RequestEditorFn) (*Get7Response, error)
+	// GetCheckWithResponse request
+	GetCheckWithResponse(ctx context.Context, params *GetCheckParams, reqEditors ...RequestEditorFn) (*GetCheckResponse, error)
 
-	// Register2WithBodyWithResponse request with any body
-	Register2WithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*Register2Response, error)
+	// CreateDeliveryWithBodyWithResponse request with any body
+	CreateDeliveryWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateDeliveryResponse, error)
 
 	// GetEstimatedIntervalsWithBodyWithResponse request with any body
 	GetEstimatedIntervalsWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetEstimatedIntervalsResponse, error)
@@ -7435,17 +7435,17 @@ type ClientWithResponsesInterface interface {
 	// GetIntervalsWithResponse request
 	GetIntervalsWithResponse(ctx context.Context, params *GetIntervalsParams, reqEditors ...RequestEditorFn) (*GetIntervalsResponse, error)
 
-	// Get3WithResponse request
-	Get3WithResponse(ctx context.Context, uuid interface{}, reqEditors ...RequestEditorFn) (*Get3Response, error)
+	// GetDeliveryWithResponse request
+	GetDeliveryWithResponse(ctx context.Context, uuid interface{}, reqEditors ...RequestEditorFn) (*GetDeliveryResponse, error)
 
-	// SearchWithResponse request
-	SearchWithResponse(ctx context.Context, params *SearchParams, reqEditors ...RequestEditorFn) (*SearchResponse, error)
+	// GetDeliverypointsWithResponse request
+	GetDeliverypointsWithResponse(ctx context.Context, params *GetDeliverypointsParams, reqEditors ...RequestEditorFn) (*GetDeliverypointsResponse, error)
 
 	// ChangeStatusWithBodyWithResponse request with any body
 	ChangeStatusWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ChangeStatusResponse, error)
 
-	// CreateWithBodyWithResponse request with any body
-	CreateWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateResponse, error)
+	// CreateIntakeWithBodyWithResponse request with any body
+	CreateIntakeWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateIntakeResponse, error)
 
 	// GetAvailableDaysWithBodyWithResponse request with any body
 	GetAvailableDaysWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetAvailableDaysResponse, error)
@@ -7477,14 +7477,14 @@ type ClientWithResponsesInterface interface {
 	// GetOAuthTokenWithResponse request
 	GetOAuthTokenWithResponse(ctx context.Context, params *GetOAuthTokenParams, reqEditors ...RequestEditorFn) (*GetOAuthTokenResponse, error)
 
-	// GetWithResponse request
-	GetWithResponse(ctx context.Context, params *GetParams, reqEditors ...RequestEditorFn) (*GetResponse, error)
+	// GetOrdersWithResponse request
+	GetOrdersWithResponse(ctx context.Context, params *GetOrdersParams, reqEditors ...RequestEditorFn) (*GetOrdersResponse, error)
 
 	// UpdateWithBodyWithResponse request with any body
 	UpdateWithBodyWithResponse(ctx context.Context, params *UpdateParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateResponse, error)
 
-	// Register1WithBodyWithResponse request with any body
-	Register1WithBodyWithResponse(ctx context.Context, params *Register1Params, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*Register1Response, error)
+	// CreateOrderWithBodyWithResponse request with any body
+	CreateOrderWithBodyWithResponse(ctx context.Context, params *CreateOrderParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateOrderResponse, error)
 
 	// GetIntakesWithResponse request
 	GetIntakesWithResponse(ctx context.Context, orderUuid interface{}, params *GetIntakesParams, reqEditors ...RequestEditorFn) (*GetIntakesResponse, error)
@@ -7492,8 +7492,8 @@ type ClientWithResponsesInterface interface {
 	// DeleteWithResponse request
 	DeleteWithResponse(ctx context.Context, uuid interface{}, reqEditors ...RequestEditorFn) (*DeleteResponse, error)
 
-	// Get2WithResponse request
-	Get2WithResponse(ctx context.Context, uuid interface{}, reqEditors ...RequestEditorFn) (*Get2Response, error)
+	// GetOrderWithResponse request
+	GetOrderWithResponse(ctx context.Context, uuid interface{}, reqEditors ...RequestEditorFn) (*GetOrderResponse, error)
 
 	// ClientReturnWithBodyWithResponse request with any body
 	ClientReturnWithBodyWithResponse(ctx context.Context, uuid interface{}, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ClientReturnResponse, error)
@@ -7501,11 +7501,11 @@ type ClientWithResponsesInterface interface {
 	// RefuseWithResponse request
 	RefuseWithResponse(ctx context.Context, uuid interface{}, reqEditors ...RequestEditorFn) (*RefuseResponse, error)
 
-	// Get6WithResponse request
-	Get6WithResponse(ctx context.Context, params *Get6Params, reqEditors ...RequestEditorFn) (*Get6Response, error)
+	// GetPassportWithResponse request
+	GetPassportWithResponse(ctx context.Context, params *GetPassportParams, reqEditors ...RequestEditorFn) (*GetPassportResponse, error)
 
-	// Get5WithResponse request
-	Get5WithResponse(ctx context.Context, params *Get5Params, reqEditors ...RequestEditorFn) (*Get5Response, error)
+	// GetPaymentWithResponse request
+	GetPaymentWithResponse(ctx context.Context, params *GetPaymentParams, reqEditors ...RequestEditorFn) (*GetPaymentResponse, error)
 
 	// GetReadyOrdersWithBodyWithResponse request with any body
 	GetReadyOrdersWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetReadyOrdersResponse, error)
@@ -7513,8 +7513,8 @@ type ClientWithResponsesInterface interface {
 	// RegisterWithBodyWithResponse request with any body
 	RegisterWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RegisterResponse, error)
 
-	// Get1WithResponse request
-	Get1WithResponse(ctx context.Context, uuid interface{}, reqEditors ...RequestEditorFn) (*Get1Response, error)
+	// GetPrealertWithResponse request
+	GetPrealertWithResponse(ctx context.Context, uuid interface{}, reqEditors ...RequestEditorFn) (*GetPrealertResponse, error)
 
 	// BarcodePrintWithBodyWithResponse request with any body
 	BarcodePrintWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*BarcodePrintResponse, error)
@@ -7534,8 +7534,8 @@ type ClientWithResponsesInterface interface {
 	// WaybillDownloadWithResponse request
 	WaybillDownloadWithResponse(ctx context.Context, uuid interface{}, reqEditors ...RequestEditorFn) (*WaybillDownloadResponse, error)
 
-	// Get4WithResponse request
-	Get4WithResponse(ctx context.Context, params *Get4Params, reqEditors ...RequestEditorFn) (*Get4Response, error)
+	// GetRegistriesWithResponse request
+	GetRegistriesWithResponse(ctx context.Context, params *GetRegistriesParams, reqEditors ...RequestEditorFn) (*GetRegistriesResponse, error)
 
 	// CheckAvailabilityWithBodyWithResponse request with any body
 	CheckAvailabilityWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CheckAvailabilityResponse, error)
@@ -7637,13 +7637,13 @@ func (r TariffListResponse) StatusCode() int {
 	return 0
 }
 
-type Get7Response struct {
+type GetCheckResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 }
 
 // Status returns HTTPResponse.Status
-func (r Get7Response) Status() string {
+func (r GetCheckResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -7651,20 +7651,20 @@ func (r Get7Response) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r Get7Response) StatusCode() int {
+func (r GetCheckResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type Register2Response struct {
+type CreateDeliveryResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 }
 
 // Status returns HTTPResponse.Status
-func (r Register2Response) Status() string {
+func (r CreateDeliveryResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -7672,7 +7672,7 @@ func (r Register2Response) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r Register2Response) StatusCode() int {
+func (r CreateDeliveryResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -7721,13 +7721,13 @@ func (r GetIntervalsResponse) StatusCode() int {
 	return 0
 }
 
-type Get3Response struct {
+type GetDeliveryResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 }
 
 // Status returns HTTPResponse.Status
-func (r Get3Response) Status() string {
+func (r GetDeliveryResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -7735,20 +7735,20 @@ func (r Get3Response) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r Get3Response) StatusCode() int {
+func (r GetDeliveryResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type SearchResponse struct {
+type GetDeliverypointsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 }
 
 // Status returns HTTPResponse.Status
-func (r SearchResponse) Status() string {
+func (r GetDeliverypointsResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -7756,7 +7756,7 @@ func (r SearchResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r SearchResponse) StatusCode() int {
+func (r GetDeliverypointsResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -7784,13 +7784,13 @@ func (r ChangeStatusResponse) StatusCode() int {
 	return 0
 }
 
-type CreateResponse struct {
+type CreateIntakeResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 }
 
 // Status returns HTTPResponse.Status
-func (r CreateResponse) Status() string {
+func (r CreateIntakeResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -7798,7 +7798,7 @@ func (r CreateResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r CreateResponse) StatusCode() int {
+func (r CreateIntakeResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -8015,13 +8015,13 @@ func (r GetOAuthTokenResponse) StatusCode() int {
 	return 0
 }
 
-type GetResponse struct {
+type GetOrdersResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 }
 
 // Status returns HTTPResponse.Status
-func (r GetResponse) Status() string {
+func (r GetOrdersResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -8029,7 +8029,7 @@ func (r GetResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetResponse) StatusCode() int {
+func (r GetOrdersResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -8057,13 +8057,13 @@ func (r UpdateResponse) StatusCode() int {
 	return 0
 }
 
-type Register1Response struct {
+type CreateOrderResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 }
 
 // Status returns HTTPResponse.Status
-func (r Register1Response) Status() string {
+func (r CreateOrderResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -8071,7 +8071,7 @@ func (r Register1Response) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r Register1Response) StatusCode() int {
+func (r CreateOrderResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -8120,13 +8120,13 @@ func (r DeleteResponse) StatusCode() int {
 	return 0
 }
 
-type Get2Response struct {
+type GetOrderResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 }
 
 // Status returns HTTPResponse.Status
-func (r Get2Response) Status() string {
+func (r GetOrderResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -8134,7 +8134,7 @@ func (r Get2Response) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r Get2Response) StatusCode() int {
+func (r GetOrderResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -8183,13 +8183,13 @@ func (r RefuseResponse) StatusCode() int {
 	return 0
 }
 
-type Get6Response struct {
+type GetPassportResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 }
 
 // Status returns HTTPResponse.Status
-func (r Get6Response) Status() string {
+func (r GetPassportResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -8197,20 +8197,20 @@ func (r Get6Response) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r Get6Response) StatusCode() int {
+func (r GetPassportResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type Get5Response struct {
+type GetPaymentResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 }
 
 // Status returns HTTPResponse.Status
-func (r Get5Response) Status() string {
+func (r GetPaymentResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -8218,7 +8218,7 @@ func (r Get5Response) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r Get5Response) StatusCode() int {
+func (r GetPaymentResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -8267,13 +8267,13 @@ func (r RegisterResponse) StatusCode() int {
 	return 0
 }
 
-type Get1Response struct {
+type GetPrealertResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 }
 
 // Status returns HTTPResponse.Status
-func (r Get1Response) Status() string {
+func (r GetPrealertResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -8281,7 +8281,7 @@ func (r Get1Response) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r Get1Response) StatusCode() int {
+func (r GetPrealertResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -8414,13 +8414,13 @@ func (r WaybillDownloadResponse) StatusCode() int {
 	return 0
 }
 
-type Get4Response struct {
+type GetRegistriesResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 }
 
 // Status returns HTTPResponse.Status
-func (r Get4Response) Status() string {
+func (r GetRegistriesResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -8428,7 +8428,7 @@ func (r Get4Response) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r Get4Response) StatusCode() int {
+func (r GetRegistriesResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -8576,22 +8576,22 @@ func (c *ClientWithResponses) TariffListWithBodyWithResponse(ctx context.Context
 	return ParseTariffListResponse(rsp)
 }
 
-// Get7WithResponse request returning *Get7Response
-func (c *ClientWithResponses) Get7WithResponse(ctx context.Context, params *Get7Params, reqEditors ...RequestEditorFn) (*Get7Response, error) {
-	rsp, err := c.Get7(ctx, params, reqEditors...)
+// GetCheckWithResponse request returning *GetCheckResponse
+func (c *ClientWithResponses) GetCheckWithResponse(ctx context.Context, params *GetCheckParams, reqEditors ...RequestEditorFn) (*GetCheckResponse, error) {
+	rsp, err := c.GetCheck(ctx, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGet7Response(rsp)
+	return ParseGetCheckResponse(rsp)
 }
 
-// Register2WithBodyWithResponse request with arbitrary body returning *Register2Response
-func (c *ClientWithResponses) Register2WithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*Register2Response, error) {
-	rsp, err := c.Register2WithBody(ctx, contentType, body, reqEditors...)
+// CreateDeliveryWithBodyWithResponse request with arbitrary body returning *CreateDeliveryResponse
+func (c *ClientWithResponses) CreateDeliveryWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateDeliveryResponse, error) {
+	rsp, err := c.CreateDeliveryWithBody(ctx, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseRegister2Response(rsp)
+	return ParseCreateDeliveryResponse(rsp)
 }
 
 // GetEstimatedIntervalsWithBodyWithResponse request with arbitrary body returning *GetEstimatedIntervalsResponse
@@ -8612,22 +8612,22 @@ func (c *ClientWithResponses) GetIntervalsWithResponse(ctx context.Context, para
 	return ParseGetIntervalsResponse(rsp)
 }
 
-// Get3WithResponse request returning *Get3Response
-func (c *ClientWithResponses) Get3WithResponse(ctx context.Context, uuid interface{}, reqEditors ...RequestEditorFn) (*Get3Response, error) {
-	rsp, err := c.Get3(ctx, uuid, reqEditors...)
+// GetDeliveryWithResponse request returning *GetDeliveryResponse
+func (c *ClientWithResponses) GetDeliveryWithResponse(ctx context.Context, uuid interface{}, reqEditors ...RequestEditorFn) (*GetDeliveryResponse, error) {
+	rsp, err := c.GetDelivery(ctx, uuid, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGet3Response(rsp)
+	return ParseGetDeliveryResponse(rsp)
 }
 
-// SearchWithResponse request returning *SearchResponse
-func (c *ClientWithResponses) SearchWithResponse(ctx context.Context, params *SearchParams, reqEditors ...RequestEditorFn) (*SearchResponse, error) {
-	rsp, err := c.Search(ctx, params, reqEditors...)
+// GetDeliverypointsWithResponse request returning *GetDeliverypointsResponse
+func (c *ClientWithResponses) GetDeliverypointsWithResponse(ctx context.Context, params *GetDeliverypointsParams, reqEditors ...RequestEditorFn) (*GetDeliverypointsResponse, error) {
+	rsp, err := c.GetDeliverypoints(ctx, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseSearchResponse(rsp)
+	return ParseGetDeliverypointsResponse(rsp)
 }
 
 // ChangeStatusWithBodyWithResponse request with arbitrary body returning *ChangeStatusResponse
@@ -8639,13 +8639,13 @@ func (c *ClientWithResponses) ChangeStatusWithBodyWithResponse(ctx context.Conte
 	return ParseChangeStatusResponse(rsp)
 }
 
-// CreateWithBodyWithResponse request with arbitrary body returning *CreateResponse
-func (c *ClientWithResponses) CreateWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateResponse, error) {
-	rsp, err := c.CreateWithBody(ctx, contentType, body, reqEditors...)
+// CreateIntakeWithBodyWithResponse request with arbitrary body returning *CreateIntakeResponse
+func (c *ClientWithResponses) CreateIntakeWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateIntakeResponse, error) {
+	rsp, err := c.CreateIntakeWithBody(ctx, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseCreateResponse(rsp)
+	return ParseCreateIntakeResponse(rsp)
 }
 
 // GetAvailableDaysWithBodyWithResponse request with arbitrary body returning *GetAvailableDaysResponse
@@ -8738,13 +8738,13 @@ func (c *ClientWithResponses) GetOAuthTokenWithResponse(ctx context.Context, par
 	return ParseGetOAuthTokenResponse(rsp)
 }
 
-// GetWithResponse request returning *GetResponse
-func (c *ClientWithResponses) GetWithResponse(ctx context.Context, params *GetParams, reqEditors ...RequestEditorFn) (*GetResponse, error) {
-	rsp, err := c.Get(ctx, params, reqEditors...)
+// GetOrdersWithResponse request returning *GetOrdersResponse
+func (c *ClientWithResponses) GetOrdersWithResponse(ctx context.Context, params *GetOrdersParams, reqEditors ...RequestEditorFn) (*GetOrdersResponse, error) {
+	rsp, err := c.GetOrders(ctx, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetResponse(rsp)
+	return ParseGetOrdersResponse(rsp)
 }
 
 // UpdateWithBodyWithResponse request with arbitrary body returning *UpdateResponse
@@ -8756,13 +8756,13 @@ func (c *ClientWithResponses) UpdateWithBodyWithResponse(ctx context.Context, pa
 	return ParseUpdateResponse(rsp)
 }
 
-// Register1WithBodyWithResponse request with arbitrary body returning *Register1Response
-func (c *ClientWithResponses) Register1WithBodyWithResponse(ctx context.Context, params *Register1Params, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*Register1Response, error) {
-	rsp, err := c.Register1WithBody(ctx, params, contentType, body, reqEditors...)
+// CreateOrderWithBodyWithResponse request with arbitrary body returning *CreateOrderResponse
+func (c *ClientWithResponses) CreateOrderWithBodyWithResponse(ctx context.Context, params *CreateOrderParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateOrderResponse, error) {
+	rsp, err := c.CreateOrderWithBody(ctx, params, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseRegister1Response(rsp)
+	return ParseCreateOrderResponse(rsp)
 }
 
 // GetIntakesWithResponse request returning *GetIntakesResponse
@@ -8783,13 +8783,13 @@ func (c *ClientWithResponses) DeleteWithResponse(ctx context.Context, uuid inter
 	return ParseDeleteResponse(rsp)
 }
 
-// Get2WithResponse request returning *Get2Response
-func (c *ClientWithResponses) Get2WithResponse(ctx context.Context, uuid interface{}, reqEditors ...RequestEditorFn) (*Get2Response, error) {
-	rsp, err := c.Get2(ctx, uuid, reqEditors...)
+// GetOrderWithResponse request returning *GetOrderResponse
+func (c *ClientWithResponses) GetOrderWithResponse(ctx context.Context, uuid interface{}, reqEditors ...RequestEditorFn) (*GetOrderResponse, error) {
+	rsp, err := c.GetOrder(ctx, uuid, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGet2Response(rsp)
+	return ParseGetOrderResponse(rsp)
 }
 
 // ClientReturnWithBodyWithResponse request with arbitrary body returning *ClientReturnResponse
@@ -8810,22 +8810,22 @@ func (c *ClientWithResponses) RefuseWithResponse(ctx context.Context, uuid inter
 	return ParseRefuseResponse(rsp)
 }
 
-// Get6WithResponse request returning *Get6Response
-func (c *ClientWithResponses) Get6WithResponse(ctx context.Context, params *Get6Params, reqEditors ...RequestEditorFn) (*Get6Response, error) {
-	rsp, err := c.Get6(ctx, params, reqEditors...)
+// GetPassportWithResponse request returning *GetPassportResponse
+func (c *ClientWithResponses) GetPassportWithResponse(ctx context.Context, params *GetPassportParams, reqEditors ...RequestEditorFn) (*GetPassportResponse, error) {
+	rsp, err := c.GetPassport(ctx, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGet6Response(rsp)
+	return ParseGetPassportResponse(rsp)
 }
 
-// Get5WithResponse request returning *Get5Response
-func (c *ClientWithResponses) Get5WithResponse(ctx context.Context, params *Get5Params, reqEditors ...RequestEditorFn) (*Get5Response, error) {
-	rsp, err := c.Get5(ctx, params, reqEditors...)
+// GetPaymentWithResponse request returning *GetPaymentResponse
+func (c *ClientWithResponses) GetPaymentWithResponse(ctx context.Context, params *GetPaymentParams, reqEditors ...RequestEditorFn) (*GetPaymentResponse, error) {
+	rsp, err := c.GetPayment(ctx, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGet5Response(rsp)
+	return ParseGetPaymentResponse(rsp)
 }
 
 // GetReadyOrdersWithBodyWithResponse request with arbitrary body returning *GetReadyOrdersResponse
@@ -8846,13 +8846,13 @@ func (c *ClientWithResponses) RegisterWithBodyWithResponse(ctx context.Context, 
 	return ParseRegisterResponse(rsp)
 }
 
-// Get1WithResponse request returning *Get1Response
-func (c *ClientWithResponses) Get1WithResponse(ctx context.Context, uuid interface{}, reqEditors ...RequestEditorFn) (*Get1Response, error) {
-	rsp, err := c.Get1(ctx, uuid, reqEditors...)
+// GetPrealertWithResponse request returning *GetPrealertResponse
+func (c *ClientWithResponses) GetPrealertWithResponse(ctx context.Context, uuid interface{}, reqEditors ...RequestEditorFn) (*GetPrealertResponse, error) {
+	rsp, err := c.GetPrealert(ctx, uuid, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGet1Response(rsp)
+	return ParseGetPrealertResponse(rsp)
 }
 
 // BarcodePrintWithBodyWithResponse request with arbitrary body returning *BarcodePrintResponse
@@ -8909,13 +8909,13 @@ func (c *ClientWithResponses) WaybillDownloadWithResponse(ctx context.Context, u
 	return ParseWaybillDownloadResponse(rsp)
 }
 
-// Get4WithResponse request returning *Get4Response
-func (c *ClientWithResponses) Get4WithResponse(ctx context.Context, params *Get4Params, reqEditors ...RequestEditorFn) (*Get4Response, error) {
-	rsp, err := c.Get4(ctx, params, reqEditors...)
+// GetRegistriesWithResponse request returning *GetRegistriesResponse
+func (c *ClientWithResponses) GetRegistriesWithResponse(ctx context.Context, params *GetRegistriesParams, reqEditors ...RequestEditorFn) (*GetRegistriesResponse, error) {
+	rsp, err := c.GetRegistries(ctx, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGet4Response(rsp)
+	return ParseGetRegistriesResponse(rsp)
 }
 
 // CheckAvailabilityWithBodyWithResponse request with arbitrary body returning *CheckAvailabilityResponse
@@ -9027,15 +9027,15 @@ func ParseTariffListResponse(rsp *http.Response) (*TariffListResponse, error) {
 	return response, nil
 }
 
-// ParseGet7Response parses an HTTP response from a Get7WithResponse call
-func ParseGet7Response(rsp *http.Response) (*Get7Response, error) {
+// ParseGetCheckResponse parses an HTTP response from a GetCheckWithResponse call
+func ParseGetCheckResponse(rsp *http.Response) (*GetCheckResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &Get7Response{
+	response := &GetCheckResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -9043,15 +9043,15 @@ func ParseGet7Response(rsp *http.Response) (*Get7Response, error) {
 	return response, nil
 }
 
-// ParseRegister2Response parses an HTTP response from a Register2WithResponse call
-func ParseRegister2Response(rsp *http.Response) (*Register2Response, error) {
+// ParseCreateDeliveryResponse parses an HTTP response from a CreateDeliveryWithResponse call
+func ParseCreateDeliveryResponse(rsp *http.Response) (*CreateDeliveryResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &Register2Response{
+	response := &CreateDeliveryResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -9091,15 +9091,15 @@ func ParseGetIntervalsResponse(rsp *http.Response) (*GetIntervalsResponse, error
 	return response, nil
 }
 
-// ParseGet3Response parses an HTTP response from a Get3WithResponse call
-func ParseGet3Response(rsp *http.Response) (*Get3Response, error) {
+// ParseGetDeliveryResponse parses an HTTP response from a GetDeliveryWithResponse call
+func ParseGetDeliveryResponse(rsp *http.Response) (*GetDeliveryResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &Get3Response{
+	response := &GetDeliveryResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -9107,15 +9107,15 @@ func ParseGet3Response(rsp *http.Response) (*Get3Response, error) {
 	return response, nil
 }
 
-// ParseSearchResponse parses an HTTP response from a SearchWithResponse call
-func ParseSearchResponse(rsp *http.Response) (*SearchResponse, error) {
+// ParseGetDeliverypointsResponse parses an HTTP response from a GetDeliverypointsWithResponse call
+func ParseGetDeliverypointsResponse(rsp *http.Response) (*GetDeliverypointsResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &SearchResponse{
+	response := &GetDeliverypointsResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -9139,15 +9139,15 @@ func ParseChangeStatusResponse(rsp *http.Response) (*ChangeStatusResponse, error
 	return response, nil
 }
 
-// ParseCreateResponse parses an HTTP response from a CreateWithResponse call
-func ParseCreateResponse(rsp *http.Response) (*CreateResponse, error) {
+// ParseCreateIntakeResponse parses an HTTP response from a CreateIntakeWithResponse call
+func ParseCreateIntakeResponse(rsp *http.Response) (*CreateIntakeResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &CreateResponse{
+	response := &CreateIntakeResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -9315,15 +9315,15 @@ func ParseGetOAuthTokenResponse(rsp *http.Response) (*GetOAuthTokenResponse, err
 	return response, nil
 }
 
-// ParseGetResponse parses an HTTP response from a GetWithResponse call
-func ParseGetResponse(rsp *http.Response) (*GetResponse, error) {
+// ParseGetOrdersResponse parses an HTTP response from a GetOrdersWithResponse call
+func ParseGetOrdersResponse(rsp *http.Response) (*GetOrdersResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetResponse{
+	response := &GetOrdersResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -9347,15 +9347,15 @@ func ParseUpdateResponse(rsp *http.Response) (*UpdateResponse, error) {
 	return response, nil
 }
 
-// ParseRegister1Response parses an HTTP response from a Register1WithResponse call
-func ParseRegister1Response(rsp *http.Response) (*Register1Response, error) {
+// ParseCreateOrderResponse parses an HTTP response from a CreateOrderWithResponse call
+func ParseCreateOrderResponse(rsp *http.Response) (*CreateOrderResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &Register1Response{
+	response := &CreateOrderResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -9395,15 +9395,15 @@ func ParseDeleteResponse(rsp *http.Response) (*DeleteResponse, error) {
 	return response, nil
 }
 
-// ParseGet2Response parses an HTTP response from a Get2WithResponse call
-func ParseGet2Response(rsp *http.Response) (*Get2Response, error) {
+// ParseGetOrderResponse parses an HTTP response from a GetOrderWithResponse call
+func ParseGetOrderResponse(rsp *http.Response) (*GetOrderResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &Get2Response{
+	response := &GetOrderResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -9443,15 +9443,15 @@ func ParseRefuseResponse(rsp *http.Response) (*RefuseResponse, error) {
 	return response, nil
 }
 
-// ParseGet6Response parses an HTTP response from a Get6WithResponse call
-func ParseGet6Response(rsp *http.Response) (*Get6Response, error) {
+// ParseGetPassportResponse parses an HTTP response from a GetPassportWithResponse call
+func ParseGetPassportResponse(rsp *http.Response) (*GetPassportResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &Get6Response{
+	response := &GetPassportResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -9459,15 +9459,15 @@ func ParseGet6Response(rsp *http.Response) (*Get6Response, error) {
 	return response, nil
 }
 
-// ParseGet5Response parses an HTTP response from a Get5WithResponse call
-func ParseGet5Response(rsp *http.Response) (*Get5Response, error) {
+// ParseGetPaymentResponse parses an HTTP response from a GetPaymentWithResponse call
+func ParseGetPaymentResponse(rsp *http.Response) (*GetPaymentResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &Get5Response{
+	response := &GetPaymentResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -9507,15 +9507,15 @@ func ParseRegisterResponse(rsp *http.Response) (*RegisterResponse, error) {
 	return response, nil
 }
 
-// ParseGet1Response parses an HTTP response from a Get1WithResponse call
-func ParseGet1Response(rsp *http.Response) (*Get1Response, error) {
+// ParseGetPrealertResponse parses an HTTP response from a GetPrealertWithResponse call
+func ParseGetPrealertResponse(rsp *http.Response) (*GetPrealertResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &Get1Response{
+	response := &GetPrealertResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -9619,15 +9619,15 @@ func ParseWaybillDownloadResponse(rsp *http.Response) (*WaybillDownloadResponse,
 	return response, nil
 }
 
-// ParseGet4Response parses an HTTP response from a Get4WithResponse call
-func ParseGet4Response(rsp *http.Response) (*Get4Response, error) {
+// ParseGetRegistriesResponse parses an HTTP response from a GetRegistriesWithResponse call
+func ParseGetRegistriesResponse(rsp *http.Response) (*GetRegistriesResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &Get4Response{
+	response := &GetRegistriesResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}

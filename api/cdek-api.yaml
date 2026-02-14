@@ -412,7 +412,7 @@ paths:
         Есть возможность получить информацию, в том числе о заказах, которые были
         созданы через другие каналы (личный кабинет, вручную менеджером и др.), но
         только по тем, которые были созданы после первой авторизации по ключам интеграции.'
-      operationId: get
+      operationId: getOrders
       tags:
       - order
       parameters:
@@ -465,7 +465,7 @@ paths:
         "SUCCESSFUL" - сущность успешно создана в системе, статус "INVALID" - при
         создании возникла ошибка, необходимо её исправить и повторно отправить запрос
         на регистрацию заказа.'
-      operationId: register_1
+      operationId: createOrder
       tags:
       - order
       parameters:
@@ -572,7 +572,7 @@ paths:
         "SUCCESSFUL" - сущность успешно создана в системе, статус "INVALID" - при
         создании возникла ошибка, необходимо её исправить и повторно отправить запрос
         на регистрацию заявки на вызов курьера.'
-      operationId: create
+      operationId: createIntake
       tags:
       - intake
       parameters: []
@@ -666,7 +666,7 @@ paths:
     get:
       summary: Получение информации о преалерте
       description: Метод предназначен для получения информации по заданному преалерту
-      operationId: get_1
+      operationId: getPrealert
       tags:
       - prealert
       parameters:
@@ -698,7 +698,7 @@ paths:
         Есть возможность получить информацию, в том числе о заказах, которые были
         созданы через другие каналы (личный кабинет, вручную менеджером и др.), но
         только по тем, которые были созданы после первой авторизации по ключам интеграции.'
-      operationId: get_2
+      operationId: getOrder
       tags:
       - order
       parameters:
@@ -801,7 +801,7 @@ paths:
         \ Статус запроса \"SUCCESSFUL\" - сущность успешно создана в системе, статус\
         \ \"INVALID\" - при создании возникла ошибка, необходимо её исправить и повторно\
         \ отправить запрос на регистрацию договоренности о доставке."
-      operationId: register_2
+      operationId: createDelivery
       tags:
       - schedule
       parameters: []
@@ -1005,7 +1005,7 @@ paths:
       description: Метод используется для получения информации об оговоренных с клиентом
         дате и времени доставки (приезда курьера), а так же возможном новом адресе
         доставки.
-      operationId: get_3
+      operationId: getDelivery
       tags:
       - schedule
       parameters:
@@ -1361,7 +1361,7 @@ paths:
       description: Метод предназначен для получения информации о реестрах наложенных
         платежей, по которым клиенту был переведен наложенный платеж в заданную клиентом
         дату
-      operationId: get_4
+      operationId: getRegistries
       tags:
       - payment
       parameters:
@@ -1392,7 +1392,7 @@ paths:
       summary: Получение информации о переводе наложенного платежа
       description: Метод предназначен для получения информации о заказах, по которым
         был переведен наложенный платеж интернет-магазину в заданную дату
-      operationId: get_5
+      operationId: getPayment
       tags:
       - payment
       parameters:
@@ -1423,7 +1423,7 @@ paths:
       summary: Получение информации о паспортных данных
       description: Метод используется для получения информации о паспортных данных
         (сообщает о готовности передавать заказы на таможню) по международным заказу/заказам.
-      operationId: get_6
+      operationId: getPassport
       tags:
       - passport
       parameters:
@@ -1473,7 +1473,7 @@ paths:
 
         Рекомендуем делать запрос к методу и обновлять список офисов раз в сутки для
         корректного отображения актуального списка ПВЗ и постаматов.'
-      operationId: search
+      operationId: getDeliverypoints
       tags:
       - delivery_point
       parameters:
@@ -1781,7 +1781,7 @@ paths:
       summary: Получение информации о чеках
       description: Метод используется для получения информации о чеке по заказу или
         за выбранный день.
-      operationId: get_7
+      operationId: getCheck
       tags:
       - receipt
       parameters:
