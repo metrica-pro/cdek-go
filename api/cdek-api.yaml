@@ -9,49 +9,6 @@ servers:
 - url: https://api.edu.cdek.ru
   description: Test/Sandbox server
 paths:
-  /v2/oauth/token:
-    post:
-      summary: Получение токена авторизации
-      description: Взаимодействие с сервисом требует клиентской авторизации. Авторизация
-        обеспечивается с применением протокола OAuth 2.0. Метод предназначен для получения
-        токена авторизации.
-      operationId: getOAuthToken
-      tags:
-      - auth
-      responses:
-        '200':
-          description: OK
-          contentType: application/json
-          schema:
-            $ref: '#/components/schemas/AuthResponseDto'
-          examples: null
-        '400':
-          description: Bad Request
-          contentType: application/json
-          schema:
-            $ref: '#/components/schemas/ErrorResponseDto'
-          examples: null
-      requestBody:
-        required: true
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              type: object
-              required:
-              - grant_type
-              - client_id
-              - client_secret
-              properties:
-                grant_type:
-                  type: string
-                  enum:
-                  - client_credentials
-                client_id:
-                  type: string
-                  description: Client ID
-                client_secret:
-                  type: string
-                  description: Client Secret
   /v2/location/suggest/cities:
     get:
       summary: Подбор локации по названию города
@@ -1974,6 +1931,49 @@ paths:
           schema:
             $ref: '#/components/schemas/ResponseDto'
           examples: null
+  /v2/oauth/token:
+    post:
+      summary: Получение токена авторизации
+      description: Взаимодействие с сервисом требует клиентской авторизации. Авторизация
+        обеспечивается с применением протокола OAuth 2.0. Метод предназначен для получения
+        токена авторизации.
+      operationId: getOAuthToken
+      tags:
+      - auth
+      responses:
+        '200':
+          description: OK
+          contentType: application/json
+          schema:
+            $ref: '#/components/schemas/AuthResponseDto'
+          examples: null
+        '400':
+          description: Bad Request
+          contentType: application/json
+          schema:
+            $ref: '#/components/schemas/ErrorResponseDto'
+          examples: null
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+              - grant_type
+              - client_id
+              - client_secret
+              properties:
+                grant_type:
+                  type: string
+                  enum:
+                  - client_credentials
+                client_id:
+                  type: string
+                  description: Client ID
+                client_secret:
+                  type: string
+                  description: Client Secret
 components:
   schemas:
     RequestDto:

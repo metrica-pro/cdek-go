@@ -6,5 +6,7 @@ generate:
 output: pkg/cdek/client.go
 output-options:
   skip-prune: true
+  user-templates:
+    imports.tmpl: templates/imports.tmpl
 compatibility:
   always-prefix-enum-values: true
