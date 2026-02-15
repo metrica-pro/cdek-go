@@ -320,45 +320,41 @@ func (s *Service) ListDeliveryPoints(ctx context.Context, req *DeliveryPointsReq
 
 	// Выполнение через Circuit Breaker
 	result, err := s.breaker.Execute(func() (interface{}, error) {
-		// Получение токена
-		token, err := s.client.GetToken(ctx)
-		if err != nil {
-			return nil, fmt.Errorf("get token: %w", err)
+		// Строим path с query parameters
+		path := "/v2/deliverypoints"
+		queryParts := []string{}
+
+		if req.CityCode != "" {
+			queryParts = append(queryParts, fmt.Sprintf("city_code=%s", req.CityCode))
+		}
+		if req.Type != "" {
+			queryParts = append(queryParts, fmt.Sprintf("type=%s", req.Type))
 		}
 
-		// Параметры запроса
-		cityCode := req.CityCode
-		pvzType := req.Type
+		if len(queryParts) > 0 {
+			path += "?" + queryParts[0]
+			for i := 1; i < len(queryParts); i++ {
+				path += "&" + queryParts[i]
+			}
+		}
 
-		// Вызов API
-		resp, err := s.client.ClientWithResponses().GetDeliverypoints(
-			ctx,
-			&GetDeliverypointsParams{
-				CityCode: &cityCode,
-				Type:     &pvzType,
-			},
-			func(ctx context.Context, r *http.Request) error {
-				r.Header.Set("Authorization", "Bearer "+token)
-				return nil
-			},
-		)
+		// Используем AuthenticatedClient.Do для автоматической авторизации
+		httpResp, err := s.client.Do(ctx, http.MethodGet, path, nil)
 		if err != nil {
 			return nil, fmt.Errorf("api call: %w", err)
 		}
+		defer httpResp.Body.Close()
 
 		// Проверка HTTP статуса
-		if resp.StatusCode >= 400 {
-			return nil, wrapHTTPError(resp)
+		if httpResp.StatusCode >= 400 {
+			return nil, wrapHTTPError(httpResp)
 		}
 
 		// Чтение ответа
-		bodyBytes, err := io.ReadAll(resp.Body)
+		bodyBytes, err := io.ReadAll(httpResp.Body)
 		if err != nil {
 			return nil, fmt.Errorf("read response: %w", err)
 		}
-		defer func() {
-			_ = resp.Body.Close()
-		}()
 
 		// Преобразование в []DeliveryPoint
 		return s.mapper.fromCDEKDeliveryPoints(bodyBytes)

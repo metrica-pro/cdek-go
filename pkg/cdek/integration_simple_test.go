@@ -239,3 +239,243 @@ func TestSimple_Calculator(t *testing.T) {
 
 	t.Logf("✅ Calculator: запрос выполнен успешно")
 }
+
+// createTestOrder - helper для создания тестового заказа
+func createTestOrder(t *testing.T, service *Service, ctx context.Context) *OrderResponse {
+	t.Helper()
+
+	// Используем самый дешевый тариф для теста
+	fromCode := int32(44)  // Москва
+	toCode := int32(270)   // Новосибирск
+
+	req := &OrderRequest{
+		Type:       "1", // интернет-магазин
+		TariffCode: 136, // Посылка склад-склад (самый дешевый)
+		Sender: Contact{
+			Name:   "Тестовый отправитель",
+			Phones: []Phone{{Number: "+79099999999"}},
+		},
+		Recipient: Recipient{
+			Contact: Contact{
+				Name:   "Иванов Иван Иванович",
+				Phones: []Phone{{Number: "+79001234567"}},
+			},
+		},
+		FromLocation: Location{
+			Code: &fromCode,
+		},
+		ToLocation: Location{
+			Code: &toCode,
+		},
+		Packages: []OrderPackage{
+			{
+				Number: "TEST-001",
+				Weight: 1000, // 1 кг
+				Items: []Item{
+					{
+						Name:    "Тестовый товар",
+						WareKey: "TEST-SKU-001",
+						Payment: 1000,
+						Cost:    1000,
+						Weight:  1000,
+						Amount:  1,
+					},
+				},
+			},
+		},
+	}
+
+	order, err := service.CreateOrder(ctx, req)
+	if err != nil {
+		t.Fatalf("Failed to create test order: %v", err)
+	}
+
+	return order
+}
+
+func TestSimple_ServiceCreateOrder(t *testing.T) {
+	t.Skip("CDEK Sandbox requires additional setup for order creation")
+
+	client := getSimpleTestClient(t)
+	service := NewService(client, nil)
+	ctx := context.Background()
+
+	fromCode := int32(44)  // Москва
+	toCode := int32(270)   // Новосибирск
+
+	req := &OrderRequest{
+		Type:       "1", // интернет-магазин
+		TariffCode: 136, // Посылка склад-склад
+		Sender: Contact{
+			Name:   "Тестовый магазин",
+			Phones: []Phone{{Number: "+79099999999"}},
+		},
+		Recipient: Recipient{
+			Contact: Contact{
+				Name:   "Петров Петр Петрович",
+				Phones: []Phone{{Number: "+79007654321"}},
+			},
+		},
+		FromLocation: Location{
+			Code: &fromCode,
+		},
+		ToLocation: Location{
+			Code: &toCode,
+		},
+		Packages: []OrderPackage{
+			{
+				Number: "TEST-ORDER-001",
+				Weight: 1000, // 1 кг
+				Items: []Item{
+					{
+						Name:    "Тестовый товар для заказа",
+						WareKey: "TEST-SKU-002",
+						Payment: 1500,
+						Cost:    1500,
+						Weight:  1000,
+						Amount:  1,
+					},
+				},
+			},
+		},
+	}
+
+	order, err := service.CreateOrder(ctx, req)
+	if err != nil {
+		// Попробуем получить детальную ошибку
+		t.Logf("CreateOrder error: %v", err)
+		t.Logf("Request details: Type=%s, TariffCode=%d, FromCode=%d, ToCode=%d",
+			req.Type, req.TariffCode, *req.FromLocation.Code, *req.ToLocation.Code)
+		t.Fatalf("CreateOrder() error = %v", err)
+	}
+
+	// Проверяем обязательные поля
+	if order.UUID == "" {
+		t.Error("Expected non-empty order UUID")
+	}
+
+	if order.TariffCode != 136 {
+		t.Errorf("Expected tariff_code = 136, got %d", order.TariffCode)
+	}
+
+	if len(order.Statuses) == 0 {
+		t.Error("Expected at least one status")
+	}
+
+	t.Logf("✅ Service.CreateOrder: заказ создан")
+	t.Logf("  UUID: %s", order.UUID)
+	if order.Number != nil {
+		t.Logf("  CDEK Number: %s", *order.Number)
+	}
+	t.Logf("  Tariff Code: %d", order.TariffCode)
+	t.Logf("  Statuses: %d", len(order.Statuses))
+	if len(order.Statuses) > 0 {
+		t.Logf("  Current Status: %s (%s)", order.Statuses[0].Name, order.Statuses[0].Code)
+	}
+}
+
+func TestSimple_ServiceTrackOrder(t *testing.T) {
+	t.Skip("CDEK Sandbox requires additional setup for order creation")
+
+	client := getSimpleTestClient(t)
+	service := NewService(client, nil)
+	ctx := context.Background()
+
+	// Создаем тестовый заказ для отслеживания
+	order := createTestOrder(t, service, ctx)
+
+	// Отслеживаем заказ
+	tracking, err := service.TrackOrder(ctx, order.UUID)
+	if err != nil {
+		t.Fatalf("TrackOrder() error = %v", err)
+	}
+
+	// Проверяем обязательные поля
+	if tracking.UUID != order.UUID {
+		t.Errorf("Expected UUID = %s, got %s", order.UUID, tracking.UUID)
+	}
+
+	if tracking.CurrentStatus.Name == "" {
+		t.Error("Expected non-empty current status name")
+	}
+
+	if tracking.CurrentStatus.Code == "" {
+		t.Error("Expected non-empty current status code")
+	}
+
+	if len(tracking.StatusHistory) == 0 {
+		t.Error("Expected at least one status in history")
+	}
+
+	t.Logf("✅ Service.TrackOrder: отслеживание заказа")
+	t.Logf("  UUID: %s", tracking.UUID)
+	if tracking.Number != nil {
+		t.Logf("  CDEK Number: %s", *tracking.Number)
+	}
+	t.Logf("  Current Status: %s (%s)", tracking.CurrentStatus.Name, tracking.CurrentStatus.Code)
+	t.Logf("  Status History: %d events", len(tracking.StatusHistory))
+	if tracking.EstimatedDelivery != nil {
+		t.Logf("  Estimated Delivery: %s", *tracking.EstimatedDelivery)
+	}
+
+	// Выводим историю статусов
+	for i, status := range tracking.StatusHistory {
+		city := ""
+		if status.City != nil {
+			city = " (" + *status.City + ")"
+		}
+		t.Logf("    [%d] %s: %s%s at %s",
+			i+1, status.Code, status.Name, city, status.DateTime)
+	}
+}
+
+func TestSimple_ServiceListDeliveryPoints(t *testing.T) {
+	client := getSimpleTestClient(t)
+	service := NewService(client, nil)
+	ctx := context.Background()
+
+	req := &DeliveryPointsRequest{
+		CityCode: "270", // Новосибирск
+		Type:     "PVZ",
+	}
+
+	points, err := service.ListDeliveryPoints(ctx, req)
+	if err != nil {
+		t.Fatalf("ListDeliveryPoints() error = %v", err)
+	}
+
+	if len(points) == 0 {
+		t.Error("Expected at least one delivery point")
+	}
+
+	t.Logf("✅ Service.ListDeliveryPoints: найдено %d ПВЗ в Новосибирске", len(points))
+
+	// Проверяем структуру первых 3 ПВЗ
+	for i := 0; i < 3 && i < len(points); i++ {
+		p := points[i]
+
+		if p.Code == "" {
+			t.Errorf("Point[%d]: expected non-empty code", i)
+		}
+		if p.Name == "" {
+			t.Errorf("Point[%d]: expected non-empty name", i)
+		}
+		if p.Location.Address == "" {
+			t.Errorf("Point[%d]: expected non-empty address", i)
+		}
+
+		t.Logf("  [%d] %s", i+1, p.Name)
+		t.Logf("      Code: %s", p.Code)
+		t.Logf("      Type: %s", p.Type)
+		t.Logf("      Address: %s", p.Location.Address)
+		if p.WorkTime != "" {
+			t.Logf("      Work Time: %s", p.WorkTime)
+		}
+		if len(p.Phones) > 0 {
+			t.Logf("      Phone: %s", p.Phones[0].Number)
+		}
+		if p.Location.Latitude != 0 && p.Location.Longitude != 0 {
+			t.Logf("      Coordinates: %.6f, %.6f", p.Location.Latitude, p.Location.Longitude)
+		}
+	}
+}
