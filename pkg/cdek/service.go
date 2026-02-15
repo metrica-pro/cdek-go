@@ -1286,7 +1286,6 @@ func (s *Service) ListWebhooks(ctx context.Context) ([]Webhook, error) {
 		// Вызов API
 		resp, err := s.client.ClientWithResponses().GetAllWithResponse(
 			ctx,
-			nil, // params
 			func(ctx context.Context, r *http.Request) error {
 				r.Header.Set("Authorization", "Bearer "+token)
 				return nil

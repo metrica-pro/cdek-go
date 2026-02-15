@@ -700,3 +700,163 @@ func TestSimple_ServiceDownloadWaybill(t *testing.T) {
 	t.Logf("  Print Job UUID: %s", printResp.UUID)
 	t.Logf("  PDF Size: %d bytes", len(pdfBytes))
 }
+
+// ========================
+// Week 3 Tests
+// ========================
+
+// TestSimple_ServiceListCities тестирует получение списка городов
+func TestSimple_ServiceListCities(t *testing.T) {
+	client := getSimpleTestClient(t)
+	service := NewService(client, nil)
+	ctx := context.Background()
+
+	// Ищем города с названием "Москва"
+	cityName := "Москва"
+	size := 10
+	req := &CitiesRequest{
+		City: &cityName,
+		Size: &size,
+	}
+
+	cities, err := service.ListCities(ctx, req)
+	if err != nil {
+		t.Fatalf("ListCities failed: %v", err)
+	}
+
+	if len(cities) == 0 {
+		t.Error("Expected at least one city")
+	}
+
+	t.Logf("✅ Service.ListCities: найдено %d городов", len(cities))
+	for i, city := range cities {
+		if i >= 3 {
+			break
+		}
+		t.Logf("  [%d] %s (код %d, регион %s)", i+1, city.City, city.Code, city.Region)
+	}
+}
+
+// TestSimple_ServiceListRegions тестирует получение списка регионов
+func TestSimple_ServiceListRegions(t *testing.T) {
+	client := getSimpleTestClient(t)
+	service := NewService(client, nil)
+	ctx := context.Background()
+
+	// Получаем регионы России
+	countryCode := "RU"
+	size := 10
+	req := &RegionsRequest{
+		CountryCode: &countryCode,
+		Size:        &size,
+	}
+
+	regions, err := service.ListRegions(ctx, req)
+	if err != nil {
+		t.Fatalf("ListRegions failed: %v", err)
+	}
+
+	if len(regions) == 0 {
+		t.Error("Expected at least one region")
+	}
+
+	t.Logf("✅ Service.ListRegions: найдено %d регионов", len(regions))
+	for i, region := range regions {
+		if i >= 3 {
+			break
+		}
+		t.Logf("  [%d] %s (код %d)", i+1, region.Region, region.Code)
+	}
+}
+
+// TestSimple_ServiceCreateIntake тестирует создание заявки на забор
+func TestSimple_ServiceCreateIntake(t *testing.T) {
+	client := getSimpleTestClient(t)
+	service := NewService(client, nil)
+	ctx := context.Background()
+
+	// Создаем заказ для забора
+	order := createTestOrder(t, service, ctx)
+
+	// Создаем заявку на забор
+	fromCode := int32(44)
+	fromAddress := "ул. Ленина, д. 1"
+	comment := "Test intake"
+
+	req := &IntakeRequest{
+		IntakeDate:     time.Now().Add(24 * time.Hour).Format("2006-01-02"),
+		IntakeTimeFrom: "10:00",
+		IntakeTimeTo:   "18:00",
+		Comment:        &comment,
+		Sender: Contact{
+			Name:   "Тестовый магазин",
+			Phones: []Phone{{Number: "+79099999999"}},
+		},
+		FromLocation: Location{
+			Code:    &fromCode,
+			Address: &fromAddress,
+		},
+		Orders: []IntakeOrder{{OrderUUID: order.UUID}},
+	}
+
+	intake, err := service.CreateIntake(ctx, req)
+	if err != nil {
+		// Заявка на забор может не создаться в Sandbox
+		t.Logf("⚠️  CreateIntake returned error (may be expected in Sandbox): %v", err)
+		return
+	}
+
+	if intake.UUID == "" {
+		t.Error("Expected non-empty intake UUID")
+	}
+
+	t.Logf("✅ Service.CreateIntake: заявка создана")
+	t.Logf("  UUID: %s", intake.UUID)
+}
+
+// TestSimple_ServiceListWebhooks тестирует получение списка webhooks
+func TestSimple_ServiceListWebhooks(t *testing.T) {
+	client := getSimpleTestClient(t)
+	service := NewService(client, nil)
+	ctx := context.Background()
+
+	webhooks, err := service.ListWebhooks(ctx)
+	if err != nil {
+		t.Fatalf("ListWebhooks failed: %v", err)
+	}
+
+	t.Logf("✅ Service.ListWebhooks: получено %d webhooks", len(webhooks))
+	for i, webhook := range webhooks {
+		if i >= 3 {
+			break
+		}
+		t.Logf("  [%d] %s (type: %s, active: %v)", i+1, webhook.URL, webhook.Type, webhook.IsActive)
+	}
+}
+
+// TestSimple_ServiceCreateWebhook тестирует создание webhook
+func TestSimple_ServiceCreateWebhook(t *testing.T) {
+	client := getSimpleTestClient(t)
+	service := NewService(client, nil)
+	ctx := context.Background()
+
+	req := &WebhookRequest{
+		URL:  "https://example.com/webhook/cdek",
+		Type: "ORDER_STATUS",
+	}
+
+	webhook, err := service.CreateWebhook(ctx, req)
+	if err != nil {
+		// Webhook может не создаться в Sandbox или URL не доступен
+		t.Logf("⚠️  CreateWebhook returned error (may be expected): %v", err)
+		return
+	}
+
+	if webhook.UUID == "" {
+		t.Error("Expected non-empty webhook UUID")
+	}
+
+	t.Logf("✅ Service.CreateWebhook: webhook создан")
+	t.Logf("  UUID: %s", webhook.UUID)
+	t.Logf("  URL: %s", webhook.URL)
+}
