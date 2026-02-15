@@ -567,3 +567,295 @@ func (s *Service) PrintWaybill(ctx context.Context, req *PrintWaybillRequest) (*
 
 	return printResp, nil
 }
+
+// GetOrder получает полную информацию о заказе (включая все детали)
+func (s *Service) GetOrder(ctx context.Context, orderUUID string) (*OrderInfo, error) {
+	s.logger.Info().
+		Str("uuid", orderUUID).
+		Msg("getting order info")
+
+	// Выполнение через Circuit Breaker
+	result, err := s.breaker.Execute(func() (interface{}, error) {
+		// Получение токена
+		token, err := s.client.GetToken(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("get token: %w", err)
+		}
+
+		// Вызов API
+		resp, err := s.client.ClientWithResponses().GetOrderWithResponse(
+			ctx,
+			orderUUID,
+			func(ctx context.Context, r *http.Request) error {
+				r.Header.Set("Authorization", "Bearer "+token)
+				return nil
+			},
+		)
+		if err != nil {
+			return nil, fmt.Errorf("api call: %w", err)
+		}
+
+		// Чтение ответа
+		bodyBytes := resp.Body
+
+		// Проверка HTTP статуса
+		if resp.StatusCode() >= 400 {
+			httpResp := &http.Response{
+				StatusCode: resp.StatusCode(),
+				Body:       io.NopCloser(bytes.NewReader(bodyBytes)),
+			}
+			return nil, wrapHTTPError(httpResp)
+		}
+
+		// Преобразование CDEK Response → OrderInfo
+		return s.mapper.fromCDEKOrderToInfo(bodyBytes)
+	})
+
+	if err != nil {
+		s.logger.Error().Err(err).Str("uuid", orderUUID).Msg("get order failed")
+		return nil, err
+	}
+
+	orderInfo := result.(*OrderInfo)
+	s.logger.Info().
+		Str("uuid", orderInfo.UUID).
+		Msg("get order success")
+
+	return orderInfo, nil
+}
+
+// UpdateOrder обновляет существующий заказ
+func (s *Service) UpdateOrder(ctx context.Context, req *UpdateOrderRequest) (*OrderResponse, error) {
+	s.logger.Info().
+		Str("uuid", req.OrderUUID).
+		Msg("updating order")
+
+	// Выполнение через Circuit Breaker
+	result, err := s.breaker.Execute(func() (interface{}, error) {
+		// Преобразование Service Request → CDEK map (используем тот же маппер что и для Create)
+		updateMap, err := s.mapper.toCDEKUpdateOrderRequest(req)
+		if err != nil {
+			return nil, fmt.Errorf("map request: %w", err)
+		}
+
+		// Получение токена
+		token, err := s.client.GetToken(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("get token: %w", err)
+		}
+
+		// Маршалинг в JSON
+		requestBody, err := json.Marshal(updateMap)
+		if err != nil {
+			return nil, fmt.Errorf("marshal request: %w", err)
+		}
+
+		// Вызов API (PATCH /orders)
+		resp, err := s.client.ClientWithResponses().UpdateWithBodyWithResponse(
+			ctx,
+			nil, // params (только developer-key, опционально)
+			"application/json",
+			bytes.NewReader(requestBody),
+			func(ctx context.Context, r *http.Request) error {
+				r.Header.Set("Authorization", "Bearer "+token)
+				return nil
+			},
+		)
+		if err != nil {
+			return nil, fmt.Errorf("api call: %w", err)
+		}
+
+		// Чтение ответа
+		bodyBytes := resp.Body
+
+		// Проверка HTTP статуса
+		if resp.StatusCode() >= 400 {
+			httpResp := &http.Response{
+				StatusCode: resp.StatusCode(),
+				Body:       io.NopCloser(bytes.NewReader(bodyBytes)),
+			}
+			return nil, wrapHTTPError(httpResp)
+		}
+
+		// Преобразование CDEK Response → OrderResponse
+		return s.mapper.fromCDEKOrderResponse(bodyBytes)
+	})
+
+	if err != nil {
+		s.logger.Error().Err(err).Str("uuid", req.OrderUUID).Msg("update order failed")
+		return nil, err
+	}
+
+	orderResp := result.(*OrderResponse)
+	s.logger.Info().
+		Str("uuid", orderResp.UUID).
+		Msg("update order success")
+
+	return orderResp, nil
+}
+
+// CancelOrder отменяет заказ
+func (s *Service) CancelOrder(ctx context.Context, orderUUID string) error {
+	s.logger.Info().
+		Str("uuid", orderUUID).
+		Msg("canceling order")
+
+	// Выполнение через Circuit Breaker
+	_, err := s.breaker.Execute(func() (interface{}, error) {
+		// Получение токена
+		token, err := s.client.GetToken(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("get token: %w", err)
+		}
+
+		// Вызов API
+		resp, err := s.client.ClientWithResponses().DeleteWithResponse(
+			ctx,
+			orderUUID,
+			func(ctx context.Context, r *http.Request) error {
+				r.Header.Set("Authorization", "Bearer "+token)
+				return nil
+			},
+		)
+		if err != nil {
+			return nil, fmt.Errorf("api call: %w", err)
+		}
+
+		// Чтение ответа
+		bodyBytes := resp.Body
+
+		// Проверка HTTP статуса
+		if resp.StatusCode() >= 400 {
+			httpResp := &http.Response{
+				StatusCode: resp.StatusCode(),
+				Body:       io.NopCloser(bytes.NewReader(bodyBytes)),
+			}
+			return nil, wrapHTTPError(httpResp)
+		}
+
+		return nil, nil
+	})
+
+	if err != nil {
+		s.logger.Error().Err(err).Str("uuid", orderUUID).Msg("cancel order failed")
+		return err
+	}
+
+	s.logger.Info().
+		Str("uuid", orderUUID).
+		Msg("cancel order success")
+
+	return nil
+}
+
+// DownloadBarcode скачивает готовый PDF с этикетками
+func (s *Service) DownloadBarcode(ctx context.Context, printUUID string) ([]byte, error) {
+	s.logger.Info().
+		Str("print_uuid", printUUID).
+		Msg("downloading barcode PDF")
+
+	// Выполнение через Circuit Breaker
+	result, err := s.breaker.Execute(func() (interface{}, error) {
+		// Получение токена
+		token, err := s.client.GetToken(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("get token: %w", err)
+		}
+
+		// Вызов API
+		resp, err := s.client.ClientWithResponses().BarcodeDownloadWithResponse(
+			ctx,
+			printUUID,
+			func(ctx context.Context, r *http.Request) error {
+				r.Header.Set("Authorization", "Bearer "+token)
+				return nil
+			},
+		)
+		if err != nil {
+			return nil, fmt.Errorf("api call: %w", err)
+		}
+
+		// Чтение PDF
+		pdfBytes := resp.Body
+
+		// Проверка HTTP статуса
+		if resp.StatusCode() >= 400 {
+			httpResp := &http.Response{
+				StatusCode: resp.StatusCode(),
+				Body:       io.NopCloser(bytes.NewReader(pdfBytes)),
+			}
+			return nil, wrapHTTPError(httpResp)
+		}
+
+		return pdfBytes, nil
+	})
+
+	if err != nil {
+		s.logger.Error().Err(err).Str("print_uuid", printUUID).Msg("download barcode failed")
+		return nil, err
+	}
+
+	pdfBytes := result.([]byte)
+	s.logger.Info().
+		Str("print_uuid", printUUID).
+		Int("size_bytes", len(pdfBytes)).
+		Msg("download barcode success")
+
+	return pdfBytes, nil
+}
+
+// DownloadWaybill скачивает готовый PDF с накладной
+func (s *Service) DownloadWaybill(ctx context.Context, printUUID string) ([]byte, error) {
+	s.logger.Info().
+		Str("print_uuid", printUUID).
+		Msg("downloading waybill PDF")
+
+	// Выполнение через Circuit Breaker
+	result, err := s.breaker.Execute(func() (interface{}, error) {
+		// Получение токена
+		token, err := s.client.GetToken(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("get token: %w", err)
+		}
+
+		// Вызов API
+		resp, err := s.client.ClientWithResponses().WaybillDownloadWithResponse(
+			ctx,
+			printUUID,
+			func(ctx context.Context, r *http.Request) error {
+				r.Header.Set("Authorization", "Bearer "+token)
+				return nil
+			},
+		)
+		if err != nil {
+			return nil, fmt.Errorf("api call: %w", err)
+		}
+
+		// Чтение PDF
+		pdfBytes := resp.Body
+
+		// Проверка HTTP статуса
+		if resp.StatusCode() >= 400 {
+			httpResp := &http.Response{
+				StatusCode: resp.StatusCode(),
+				Body:       io.NopCloser(bytes.NewReader(pdfBytes)),
+			}
+			return nil, wrapHTTPError(httpResp)
+		}
+
+		return pdfBytes, nil
+	})
+
+	if err != nil {
+		s.logger.Error().Err(err).Str("print_uuid", printUUID).Msg("download waybill failed")
+		return nil, err
+	}
+
+	pdfBytes := result.([]byte)
+	s.logger.Info().
+		Str("print_uuid", printUUID).
+		Int("size_bytes", len(pdfBytes)).
+		Msg("download waybill success")
+
+	return pdfBytes, nil
+}

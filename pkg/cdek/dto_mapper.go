@@ -484,3 +484,275 @@ func (m *dtoMapper) fromCDEKDeliveryPoints(data []byte) ([]DeliveryPoint, error)
 
 	return points, nil
 }
+
+// ========================
+// Order Info (GetOrder)
+// ========================
+
+// fromCDEKOrderToInfo преобразует GetOrder ответ → OrderInfo (полная информация)
+func (m *dtoMapper) fromCDEKOrderToInfo(data []byte) (*OrderInfo, error) {
+	var rawResp map[string]interface{}
+	if err := json.Unmarshal(data, &rawResp); err != nil {
+		return nil, fmt.Errorf("unmarshal order info: %w", err)
+	}
+
+	// Проверяем наличие entity
+	entity, ok := rawResp["entity"].(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("entity not found in response")
+	}
+
+	info := &OrderInfo{}
+
+	// UUID (обязательный)
+	if uuid, ok := entity["uuid"].(string); ok {
+		info.UUID = uuid
+	}
+
+	// Номер заказа
+	if cdekNum, ok := entity["cdek_number"].(string); ok {
+		info.Number = &cdekNum
+	}
+
+	// Тип заказа
+	if orderType, ok := entity["type"].(string); ok {
+		info.Type = orderType
+	}
+
+	// Код тарифа
+	if tariff, ok := entity["tariff_code"].(float64); ok {
+		info.TariffCode = int(tariff)
+	}
+
+	// Отправитель
+	if sender, ok := entity["sender"].(map[string]interface{}); ok {
+		if name, ok := sender["name"].(string); ok {
+			info.Sender.Name = name
+		}
+		if company, ok := sender["company"].(string); ok {
+			info.Sender.Company = &company
+		}
+		if email, ok := sender["email"].(string); ok {
+			info.Sender.Email = &email
+		}
+		if phones, ok := sender["phones"].([]interface{}); ok {
+			info.Sender.Phones = make([]Phone, 0, len(phones))
+			for _, ph := range phones {
+				if phone, ok := ph.(map[string]interface{}); ok {
+					phoneObj := Phone{}
+					if number, ok := phone["number"].(string); ok {
+						phoneObj.Number = number
+					}
+					if add, ok := phone["additional"].(string); ok {
+						phoneObj.Additional = &add
+					}
+					info.Sender.Phones = append(info.Sender.Phones, phoneObj)
+				}
+			}
+		}
+	}
+
+	// Получатель
+	if recipient, ok := entity["recipient"].(map[string]interface{}); ok {
+		if name, ok := recipient["name"].(string); ok {
+			info.Recipient.Name = name
+		}
+		if company, ok := recipient["company"].(string); ok {
+			info.Recipient.Company = &company
+		}
+		if email, ok := recipient["email"].(string); ok {
+			info.Recipient.Email = &email
+		}
+		if phones, ok := recipient["phones"].([]interface{}); ok {
+			info.Recipient.Phones = make([]Phone, 0, len(phones))
+			for _, ph := range phones {
+				if phone, ok := ph.(map[string]interface{}); ok {
+					phoneObj := Phone{}
+					if number, ok := phone["number"].(string); ok {
+						phoneObj.Number = number
+					}
+					if add, ok := phone["additional"].(string); ok {
+						phoneObj.Additional = &add
+					}
+					info.Recipient.Phones = append(info.Recipient.Phones, phoneObj)
+				}
+			}
+		}
+	}
+
+	// Статусы
+	if statuses, ok := entity["statuses"].([]interface{}); ok && len(statuses) > 0 {
+		info.Statuses = make([]StatusEvent, 0, len(statuses))
+		for _, s := range statuses {
+			if status, ok := s.(map[string]interface{}); ok {
+				event := StatusEvent{}
+				if code, ok := status["code"].(string); ok {
+					event.Code = code
+				}
+				if name, ok := status["name"].(string); ok {
+					event.Name = name
+				}
+				if dt, ok := status["date_time"].(string); ok {
+					event.DateTime = dt
+				}
+				if city, ok := status["city"].(string); ok {
+					event.City = &city
+				}
+				info.Statuses = append(info.Statuses, event)
+			}
+		}
+	}
+
+	// Дата создания из requests
+	if requests, ok := entity["requests"].([]interface{}); ok && len(requests) > 0 {
+		if firstReq, ok := requests[0].(map[string]interface{}); ok {
+			if dt, ok := firstReq["date_time"].(string); ok {
+				info.CreatedAt = dt
+			}
+		}
+	}
+
+	// Плановая дата доставки
+	if delivery, ok := entity["delivery_detail"].(map[string]interface{}); ok {
+		if date, ok := delivery["date"].(string); ok {
+			info.EstimatedDelivery = &date
+		}
+	}
+
+	return info, nil
+}
+
+// ========================
+// Update Order
+// ========================
+
+// toCDEKUpdateOrderRequest преобразует UpdateOrderRequest → map для Update API
+func (m *dtoMapper) toCDEKUpdateOrderRequest(req *UpdateOrderRequest) (map[string]interface{}, error) {
+	update := make(map[string]interface{})
+
+	// UUID обязательный для обновления
+	update["uuid"] = req.OrderUUID
+
+	// Получатель (если указан)
+	if req.Recipient != nil {
+		recipient := map[string]interface{}{
+			"name": req.Recipient.Name,
+		}
+		if req.Recipient.Company != nil {
+			recipient["company"] = *req.Recipient.Company
+		}
+		if req.Recipient.Email != nil {
+			recipient["email"] = *req.Recipient.Email
+		}
+		if len(req.Recipient.Phones) > 0 {
+			phones := make([]map[string]interface{}, len(req.Recipient.Phones))
+			for i, phone := range req.Recipient.Phones {
+				p := map[string]interface{}{"number": phone.Number}
+				if phone.Additional != nil {
+					p["additional"] = *phone.Additional
+				}
+				phones[i] = p
+			}
+			recipient["phones"] = phones
+		}
+		update["recipient"] = recipient
+	}
+
+	// Отправитель (если указан)
+	if req.Sender != nil {
+		sender := map[string]interface{}{
+			"name": req.Sender.Name,
+		}
+		if req.Sender.Company != nil {
+			sender["company"] = *req.Sender.Company
+		}
+		if req.Sender.Email != nil {
+			sender["email"] = *req.Sender.Email
+		}
+		if len(req.Sender.Phones) > 0 {
+			phones := make([]map[string]interface{}, len(req.Sender.Phones))
+			for i, phone := range req.Sender.Phones {
+				p := map[string]interface{}{"number": phone.Number}
+				if phone.Additional != nil {
+					p["additional"] = *phone.Additional
+				}
+				phones[i] = p
+			}
+			sender["phones"] = phones
+		}
+		update["sender"] = sender
+	}
+
+	// Адрес получателя (если указан)
+	if req.ToLocation != nil {
+		toLoc := make(map[string]interface{})
+		if req.ToLocation.Code != nil {
+			toLoc["code"] = *req.ToLocation.Code
+		}
+		if req.ToLocation.Address != nil {
+			toLoc["address"] = *req.ToLocation.Address
+		}
+		if req.ToLocation.City != nil {
+			toLoc["city"] = *req.ToLocation.City
+		}
+		update["to_location"] = toLoc
+	}
+
+	// Адрес отправителя (если указан)
+	if req.FromLocation != nil {
+		fromLoc := make(map[string]interface{})
+		if req.FromLocation.Code != nil {
+			fromLoc["code"] = *req.FromLocation.Code
+		}
+		if req.FromLocation.Address != nil {
+			fromLoc["address"] = *req.FromLocation.Address
+		}
+		if req.FromLocation.City != nil {
+			fromLoc["city"] = *req.FromLocation.City
+		}
+		update["from_location"] = fromLoc
+	}
+
+	// Комментарий (если указан)
+	if req.Comment != nil {
+		update["comment"] = *req.Comment
+	}
+
+	// Упаковки (если указаны)
+	if len(req.Packages) > 0 {
+		packages := make([]map[string]interface{}, len(req.Packages))
+		for i, pkg := range req.Packages {
+			p := map[string]interface{}{
+				"number": pkg.Number,
+				"weight": pkg.Weight,
+			}
+			if pkg.Length != nil {
+				p["length"] = *pkg.Length
+			}
+			if pkg.Width != nil {
+				p["width"] = *pkg.Width
+			}
+			if pkg.Height != nil {
+				p["height"] = *pkg.Height
+			}
+
+			// Товары в упаковке
+			items := make([]map[string]interface{}, len(pkg.Items))
+			for j, item := range pkg.Items {
+				items[j] = map[string]interface{}{
+					"name":     item.Name,
+					"ware_key": item.WareKey,
+					"payment":  map[string]interface{}{"value": item.Payment},
+					"cost":     item.Cost,
+					"weight":   item.Weight,
+					"amount":   item.Amount,
+				}
+			}
+			p["items"] = items
+			packages[i] = p
+		}
+		update["packages"] = packages
+	}
+
+	return update, nil
+}

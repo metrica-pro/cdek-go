@@ -127,6 +127,35 @@ type StatusEvent struct {
 	City     *string // Город, в котором произошло событие
 }
 
+// UpdateOrderRequest - запрос на обновление заказа
+type UpdateOrderRequest struct {
+	OrderUUID    string         // UUID заказа для обновления
+	Recipient    *Recipient     // Новые данные получателя
+	Sender       *Contact       // Новые данные отправителя
+	ToLocation   *Location      // Новый адрес доставки
+	FromLocation *Location      // Новый адрес отправления
+	Comment      *string        // Новый комментарий
+	Packages     []OrderPackage // Обновленный список мест (если нужно)
+}
+
+// OrderInfo - полная информация о заказе
+type OrderInfo struct {
+	UUID              string         // Идентификатор заказа в CDEK
+	Number            *string        // Номер заказа CDEK
+	Type              string         // Тип заказа
+	TariffCode        int            // Код тарифа
+	Sender            Contact        // Отправитель
+	Recipient         Recipient      // Получатель
+	FromLocation      Location       // Адрес отправления
+	ToLocation        Location       // Адрес доставки
+	Packages          []OrderPackage // Список мест
+	Statuses          []StatusEvent  // История статусов
+	CreatedAt         string         // Дата создания
+	DeliveryCost      *float64       // Стоимость доставки
+	EstimatedDelivery *string        // Планируемая дата доставки
+	ActualDelivery    *string        // Фактическая дата доставки
+}
+
 // ========================
 // Tracking
 // ========================

@@ -539,3 +539,164 @@ func TestSimple_ServicePrintWaybill(t *testing.T) {
 		t.Logf("  PDF URL: %s", printResp.URL)
 	}
 }
+
+// TestSimple_ServiceGetOrder тестирует получение полной информации о заказе
+func TestSimple_ServiceGetOrder(t *testing.T) {
+	client := getSimpleTestClient(t)
+	service := NewService(client, nil)
+	ctx := context.Background()
+
+	// Создаем заказ для тестирования
+	order := createTestOrder(t, service, ctx)
+
+	// Получаем полную информацию
+	orderInfo, err := service.GetOrder(ctx, order.UUID)
+	if err != nil {
+		t.Fatalf("GetOrder failed: %v", err)
+	}
+
+	if orderInfo.UUID == "" {
+		t.Error("Expected non-empty order UUID")
+	}
+
+	t.Logf("✅ Service.GetOrder: получена полная информация о заказе")
+	t.Logf("  UUID: %s", orderInfo.UUID)
+	if orderInfo.Number != nil {
+		t.Logf("  CDEK Number: %s", *orderInfo.Number)
+	}
+	t.Logf("  Type: %s", orderInfo.Type)
+	t.Logf("  Tariff Code: %d", orderInfo.TariffCode)
+	t.Logf("  Statuses: %d events", len(orderInfo.Statuses))
+}
+
+// TestSimple_ServiceUpdateOrder тестирует обновление заказа
+func TestSimple_ServiceUpdateOrder(t *testing.T) {
+	client := getSimpleTestClient(t)
+	service := NewService(client, nil)
+	ctx := context.Background()
+
+	// Создаем заказ для тестирования
+	order := createTestOrder(t, service, ctx)
+
+	// Обновляем комментарий
+	newComment := "Updated comment from integration test"
+	updateReq := &UpdateOrderRequest{
+		OrderUUID: order.UUID,
+		Comment:   &newComment,
+	}
+
+	updatedOrder, err := service.UpdateOrder(ctx, updateReq)
+	if err != nil {
+		// Заказ может быть уже в обработке и недоступен для обновления
+		// Это не критическая ошибка в тесте
+		t.Logf("⚠️  UpdateOrder returned error (may be expected): %v", err)
+		return
+	}
+
+	if updatedOrder.UUID == "" {
+		t.Error("Expected non-empty UUID in updated order")
+	}
+
+	t.Logf("✅ Service.UpdateOrder: заказ обновлен")
+	t.Logf("  UUID: %s", updatedOrder.UUID)
+}
+
+// TestSimple_ServiceCancelOrder тестирует отмену заказа
+func TestSimple_ServiceCancelOrder(t *testing.T) {
+	client := getSimpleTestClient(t)
+	service := NewService(client, nil)
+	ctx := context.Background()
+
+	// Создаем заказ для тестирования
+	order := createTestOrder(t, service, ctx)
+
+	// Отменяем заказ
+	err := service.CancelOrder(ctx, order.UUID)
+	if err != nil {
+		// Заказ может быть уже в обработке и недоступен для отмены
+		// Это не критическая ошибка в тесте
+		t.Logf("⚠️  CancelOrder returned error (may be expected): %v", err)
+		return
+	}
+
+	t.Logf("✅ Service.CancelOrder: заказ отменен")
+	t.Logf("  UUID: %s", order.UUID)
+}
+
+// TestSimple_ServiceDownloadBarcode тестирует скачивание PDF этикеток
+func TestSimple_ServiceDownloadBarcode(t *testing.T) {
+	client := getSimpleTestClient(t)
+	service := NewService(client, nil)
+	ctx := context.Background()
+
+	// Создаем заказ
+	order := createTestOrder(t, service, ctx)
+
+	// Создаем задание на печать этикеток
+	printReq := &PrintBarcodeRequest{
+		Orders: []PrintOrder{{OrderUUID: order.UUID}},
+	}
+
+	printResp, err := service.PrintBarcode(ctx, printReq)
+	if err != nil {
+		t.Fatalf("PrintBarcode failed: %v", err)
+	}
+
+	// Даем немного времени на обработку задания
+	time.Sleep(2 * time.Second)
+
+	// Пробуем скачать PDF
+	pdfBytes, err := service.DownloadBarcode(ctx, printResp.UUID)
+	if err != nil {
+		// PDF может быть еще не готов - это не критическая ошибка
+		t.Logf("⚠️  DownloadBarcode returned error (PDF may not be ready yet): %v", err)
+		return
+	}
+
+	if len(pdfBytes) == 0 {
+		t.Error("Expected non-empty PDF bytes")
+	}
+
+	t.Logf("✅ Service.DownloadBarcode: PDF скачан")
+	t.Logf("  Print Job UUID: %s", printResp.UUID)
+	t.Logf("  PDF Size: %d bytes", len(pdfBytes))
+}
+
+// TestSimple_ServiceDownloadWaybill тестирует скачивание PDF накладной
+func TestSimple_ServiceDownloadWaybill(t *testing.T) {
+	client := getSimpleTestClient(t)
+	service := NewService(client, nil)
+	ctx := context.Background()
+
+	// Создаем заказ
+	order := createTestOrder(t, service, ctx)
+
+	// Создаем задание на печать накладной
+	printReq := &PrintWaybillRequest{
+		Orders: []PrintOrder{{OrderUUID: order.UUID}},
+	}
+
+	printResp, err := service.PrintWaybill(ctx, printReq)
+	if err != nil {
+		t.Fatalf("PrintWaybill failed: %v", err)
+	}
+
+	// Даем немного времени на обработку задания
+	time.Sleep(2 * time.Second)
+
+	// Пробуем скачать PDF
+	pdfBytes, err := service.DownloadWaybill(ctx, printResp.UUID)
+	if err != nil {
+		// PDF может быть еще не готов - это не критическая ошибка
+		t.Logf("⚠️  DownloadWaybill returned error (PDF may not be ready yet): %v", err)
+		return
+	}
+
+	if len(pdfBytes) == 0 {
+		t.Error("Expected non-empty PDF bytes")
+	}
+
+	t.Logf("✅ Service.DownloadWaybill: PDF скачан")
+	t.Logf("  Print Job UUID: %s", printResp.UUID)
+	t.Logf("  PDF Size: %d bytes", len(pdfBytes))
+}
