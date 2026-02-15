@@ -248,6 +248,8 @@ func createTestOrder(t *testing.T, service *Service, ctx context.Context) *Order
 	fromCode := int32(44)  // Москва
 	toCode := int32(270)   // Новосибирск
 
+	toAddress := "ул. Ленина, д. 1"
+
 	req := &OrderRequest{
 		Type:       "1", // интернет-магазин
 		TariffCode: 136, // Посылка склад-склад (самый дешевый)
@@ -265,7 +267,8 @@ func createTestOrder(t *testing.T, service *Service, ctx context.Context) *Order
 			Code: &fromCode,
 		},
 		ToLocation: Location{
-			Code: &toCode,
+			Code:    &toCode,
+			Address: &toAddress,
 		},
 		Packages: []OrderPackage{
 			{
@@ -294,14 +297,13 @@ func createTestOrder(t *testing.T, service *Service, ctx context.Context) *Order
 }
 
 func TestSimple_ServiceCreateOrder(t *testing.T) {
-	t.Skip("CDEK Sandbox requires additional setup for order creation")
-
 	client := getSimpleTestClient(t)
 	service := NewService(client, nil)
 	ctx := context.Background()
 
 	fromCode := int32(44)  // Москва
 	toCode := int32(270)   // Новосибирск
+	toAddress := "ул. Ленина, д. 1, кв. 1"
 
 	req := &OrderRequest{
 		Type:       "1", // интернет-магазин
@@ -320,7 +322,8 @@ func TestSimple_ServiceCreateOrder(t *testing.T) {
 			Code: &fromCode,
 		},
 		ToLocation: Location{
-			Code: &toCode,
+			Code:    &toCode,
+			Address: &toAddress,
 		},
 		Packages: []OrderPackage{
 			{
@@ -354,29 +357,24 @@ func TestSimple_ServiceCreateOrder(t *testing.T) {
 		t.Error("Expected non-empty order UUID")
 	}
 
-	if order.TariffCode != 136 {
-		t.Errorf("Expected tariff_code = 136, got %d", order.TariffCode)
-	}
-
-	if len(order.Statuses) == 0 {
-		t.Error("Expected at least one status")
-	}
-
 	t.Logf("✅ Service.CreateOrder: заказ создан")
 	t.Logf("  UUID: %s", order.UUID)
 	if order.Number != nil {
 		t.Logf("  CDEK Number: %s", *order.Number)
 	}
-	t.Logf("  Tariff Code: %d", order.TariffCode)
-	t.Logf("  Statuses: %d", len(order.Statuses))
+	if order.CreatedAt != "" {
+		t.Logf("  Created At: %s", order.CreatedAt)
+	}
+	// TariffCode и Statuses появятся позже (асинхронное создание)
+	if order.TariffCode > 0 {
+		t.Logf("  Tariff Code: %d", order.TariffCode)
+	}
 	if len(order.Statuses) > 0 {
 		t.Logf("  Current Status: %s (%s)", order.Statuses[0].Name, order.Statuses[0].Code)
 	}
 }
 
 func TestSimple_ServiceTrackOrder(t *testing.T) {
-	t.Skip("CDEK Sandbox requires additional setup for order creation")
-
 	client := getSimpleTestClient(t)
 	service := NewService(client, nil)
 	ctx := context.Background()
@@ -477,5 +475,67 @@ func TestSimple_ServiceListDeliveryPoints(t *testing.T) {
 		if p.Location.Latitude != 0 && p.Location.Longitude != 0 {
 			t.Logf("      Coordinates: %.6f, %.6f", p.Location.Latitude, p.Location.Longitude)
 		}
+	}
+}
+
+func TestSimple_ServicePrintBarcode(t *testing.T) {
+	client := getSimpleTestClient(t)
+	service := NewService(client, nil)
+	ctx := context.Background()
+
+	// Создаем заказ для печати этикетки
+	order := createTestOrder(t, service, ctx)
+
+	// Запрашиваем печать этикетки (штрихкод)
+	req := &PrintBarcodeRequest{
+		Orders: []PrintOrder{
+			{OrderUUID: order.UUID},
+		},
+	}
+
+	printResp, err := service.PrintBarcode(ctx, req)
+	if err != nil {
+		t.Fatalf("PrintBarcode() error = %v", err)
+	}
+
+	if printResp.UUID == "" {
+		t.Error("Expected non-empty print job UUID")
+	}
+
+	t.Logf("✅ Service.PrintBarcode: задание на печать создано")
+	t.Logf("  Print Job UUID: %s", printResp.UUID)
+	if printResp.URL != "" {
+		t.Logf("  PDF URL: %s", printResp.URL)
+	}
+}
+
+func TestSimple_ServicePrintWaybill(t *testing.T) {
+	client := getSimpleTestClient(t)
+	service := NewService(client, nil)
+	ctx := context.Background()
+
+	// Создаем заказ для печати накладной
+	order := createTestOrder(t, service, ctx)
+
+	// Запрашиваем печать накладной
+	req := &PrintWaybillRequest{
+		Orders: []PrintOrder{
+			{OrderUUID: order.UUID},
+		},
+	}
+
+	printResp, err := service.PrintWaybill(ctx, req)
+	if err != nil {
+		t.Fatalf("PrintWaybill() error = %v", err)
+	}
+
+	if printResp.UUID == "" {
+		t.Error("Expected non-empty print job UUID")
+	}
+
+	t.Logf("✅ Service.PrintWaybill: задание на печать создано")
+	t.Logf("  Print Job UUID: %s", printResp.UUID)
+	if printResp.URL != "" {
+		t.Logf("  PDF URL: %s", printResp.URL)
 	}
 }

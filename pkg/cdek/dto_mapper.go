@@ -246,61 +246,86 @@ func (m *dtoMapper) fromCDEKOrderResponse(data []byte) (*OrderResponse, error) {
 		return nil, fmt.Errorf("unmarshal order response: %w", err)
 	}
 
-	// Проверяем наличие entity
-	entity, ok := rawResp["entity"].(map[string]interface{})
-	if !ok {
-		return nil, fmt.Errorf("entity not found in response")
-	}
-
 	orderResp := &OrderResponse{}
 
-	// UUID (обязательный)
-	if uuid, ok := entity["uuid"].(string); ok {
-		orderResp.UUID = uuid
-	} else {
-		return nil, fmt.Errorf("uuid not found in entity")
-	}
+	// CreateOrder возвращает либо entity (успех), либо requests (создание запроса)
+	// Пробуем entity сначала (для успешного создания)
+	if entity, ok := rawResp["entity"].(map[string]interface{}); ok {
+		// UUID (обязательный)
+		if uuid, ok := entity["uuid"].(string); ok {
+			orderResp.UUID = uuid
+		}
 
-	// Номер заказа CDEK (может быть null)
-	if cdekNum, ok := entity["cdek_number"].(string); ok {
-		orderResp.Number = &cdekNum
-	}
+		// Номер заказа CDEK (может быть null)
+		if cdekNum, ok := entity["cdek_number"].(string); ok {
+			orderResp.Number = &cdekNum
+		}
 
-	// Код тарифа
-	if tariff, ok := entity["tariff_code"].(float64); ok {
-		orderResp.TariffCode = int(tariff)
-	}
+		// Код тарифа
+		if tariff, ok := entity["tariff_code"].(float64); ok {
+			orderResp.TariffCode = int(tariff)
+		}
 
-	// Статусы
-	if statuses, ok := entity["statuses"].([]interface{}); ok {
-		orderResp.Statuses = make([]StatusEvent, 0, len(statuses))
-		for _, s := range statuses {
-			if status, ok := s.(map[string]interface{}); ok {
-				event := StatusEvent{}
-				if code, ok := status["code"].(string); ok {
-					event.Code = code
+		// Статусы
+		if statuses, ok := entity["statuses"].([]interface{}); ok {
+			orderResp.Statuses = make([]StatusEvent, 0, len(statuses))
+			for _, s := range statuses {
+				if status, ok := s.(map[string]interface{}); ok {
+					event := StatusEvent{}
+					if code, ok := status["code"].(string); ok {
+						event.Code = code
+					}
+					if name, ok := status["name"].(string); ok {
+						event.Name = name
+					}
+					if dt, ok := status["date_time"].(string); ok {
+						event.DateTime = dt
+					}
+					if city, ok := status["city"].(string); ok {
+						event.City = &city
+					}
+					orderResp.Statuses = append(orderResp.Statuses, event)
 				}
-				if name, ok := status["name"].(string); ok {
-					event.Name = name
+			}
+		}
+
+		// Дата создания из requests внутри entity
+		if requests, ok := entity["requests"].([]interface{}); ok && len(requests) > 0 {
+			if firstReq, ok := requests[0].(map[string]interface{}); ok {
+				if dt, ok := firstReq["date_time"].(string); ok {
+					orderResp.CreatedAt = dt
 				}
-				if dt, ok := status["date_time"].(string); ok {
-					event.DateTime = dt
-				}
-				if city, ok := status["city"].(string); ok {
-					event.City = &city
-				}
-				orderResp.Statuses = append(orderResp.Statuses, event)
 			}
 		}
 	}
 
-	// Дата создания из requests
-	if requests, ok := entity["requests"].([]interface{}); ok && len(requests) > 0 {
-		if firstReq, ok := requests[0].(map[string]interface{}); ok {
-			if dt, ok := firstReq["date_time"].(string); ok {
-				orderResp.CreatedAt = dt
+	// Если нет entity, используем requests на верхнем уровне
+	// Это происходит при асинхронном создании заказа
+	if orderResp.UUID == "" {
+		// Ищем UUID в related_entities
+		if relatedEntities, ok := rawResp["related_entities"].([]interface{}); ok && len(relatedEntities) > 0 {
+			for _, rel := range relatedEntities {
+				if relMap, ok := rel.(map[string]interface{}); ok {
+					if uuid, ok := relMap["uuid"].(string); ok {
+						orderResp.UUID = uuid
+						break
+					}
+				}
 			}
 		}
+
+		// Дата создания из requests на верхнем уровне
+		if requests, ok := rawResp["requests"].([]interface{}); ok && len(requests) > 0 {
+			if firstReq, ok := requests[0].(map[string]interface{}); ok {
+				if dt, ok := firstReq["date_time"].(string); ok {
+					orderResp.CreatedAt = dt
+				}
+			}
+		}
+	}
+
+	if orderResp.UUID == "" {
+		return nil, fmt.Errorf("uuid not found in response")
 	}
 
 	return orderResp, nil

@@ -221,11 +221,6 @@ func (s *Service) CreateOrder(ctx context.Context, req *OrderRequest) (*OrderRes
 			return nil, fmt.Errorf("api call: %w", err)
 		}
 
-		// Проверка HTTP статуса
-		if resp.StatusCode >= 400 {
-			return nil, wrapHTTPError(resp)
-		}
-
 		// Чтение тела ответа
 		bodyBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
@@ -234,6 +229,16 @@ func (s *Service) CreateOrder(ctx context.Context, req *OrderRequest) (*OrderRes
 		defer func() {
 			_ = resp.Body.Close()
 		}()
+
+		// Проверка HTTP статуса
+		if resp.StatusCode >= 400 {
+			// Пересоздаем response для wrapHTTPError с body
+			httpResp := &http.Response{
+				StatusCode: resp.StatusCode,
+				Body:       io.NopCloser(bytes.NewReader(bodyBytes)),
+			}
+			return nil, wrapHTTPError(httpResp)
+		}
 
 		// Преобразование CDEK Response → Service Response
 		return s.mapper.fromCDEKOrderResponse(bodyBytes)
@@ -371,4 +376,194 @@ func (s *Service) ListDeliveryPoints(ctx context.Context, req *DeliveryPointsReq
 		Msg("list delivery points success")
 
 	return points, nil
+}
+
+// PrintBarcode создает задание на печать этикеток (штрихкодов)
+func (s *Service) PrintBarcode(ctx context.Context, req *PrintBarcodeRequest) (*PrintResponse, error) {
+	s.logger.Info().
+		Int("orders_count", len(req.Orders)).
+		Msg("creating barcode print job")
+
+	// Выполнение через Circuit Breaker
+	result, err := s.breaker.Execute(func() (interface{}, error) {
+		// Получение токена
+		token, err := s.client.GetToken(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("get token: %w", err)
+		}
+
+		// Формируем request body
+		requestMap := make(map[string]interface{})
+
+		orders := make([]map[string]interface{}, len(req.Orders))
+		for i, order := range req.Orders {
+			orders[i] = map[string]interface{}{
+				"order_uuid": order.OrderUUID,
+			}
+		}
+		requestMap["orders"] = orders
+
+		if req.Copy != nil {
+			requestMap["copy_count"] = *req.Copy
+		}
+		if req.Format != nil {
+			requestMap["format"] = *req.Format
+		}
+
+		requestBody, err := json.Marshal(requestMap)
+		if err != nil {
+			return nil, fmt.Errorf("marshal request: %w", err)
+		}
+
+		// Вызов API
+		resp, err := s.client.ClientWithResponses().BarcodePrintWithBodyWithResponse(
+			ctx,
+			"application/json",
+			bytes.NewReader(requestBody),
+			func(ctx context.Context, r *http.Request) error {
+				r.Header.Set("Authorization", "Bearer "+token)
+				return nil
+			},
+		)
+		if err != nil {
+			return nil, fmt.Errorf("api call: %w", err)
+		}
+
+		// Чтение ответа
+		bodyBytes := resp.Body
+
+		// Проверка HTTP статуса
+		if resp.StatusCode() >= 400 {
+			httpResp := &http.Response{
+				StatusCode: resp.StatusCode(),
+				Body:       io.NopCloser(bytes.NewReader(bodyBytes)),
+			}
+			return nil, wrapHTTPError(httpResp)
+		}
+
+		// Парсим ответ
+		var printResp map[string]interface{}
+		if err := json.Unmarshal(bodyBytes, &printResp); err != nil {
+			return nil, fmt.Errorf("unmarshal response: %w", err)
+		}
+
+		response := &PrintResponse{}
+		if entity, ok := printResp["entity"].(map[string]interface{}); ok {
+			if uuid, ok := entity["uuid"].(string); ok {
+				response.UUID = uuid
+			}
+			if url, ok := entity["url"].(string); ok {
+				response.URL = url
+			}
+		}
+
+		return response, nil
+	})
+
+	if err != nil {
+		s.logger.Error().Err(err).Msg("create barcode print job failed")
+		return nil, err
+	}
+
+	printResp := result.(*PrintResponse)
+	s.logger.Info().
+		Str("uuid", printResp.UUID).
+		Msg("barcode print job created")
+
+	return printResp, nil
+}
+
+// PrintWaybill создает задание на печать накладных
+func (s *Service) PrintWaybill(ctx context.Context, req *PrintWaybillRequest) (*PrintResponse, error) {
+	s.logger.Info().
+		Int("orders_count", len(req.Orders)).
+		Msg("creating waybill print job")
+
+	// Выполнение через Circuit Breaker
+	result, err := s.breaker.Execute(func() (interface{}, error) {
+		// Получение токена
+		token, err := s.client.GetToken(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("get token: %w", err)
+		}
+
+		// Формируем request body
+		requestMap := make(map[string]interface{})
+
+		orders := make([]map[string]interface{}, len(req.Orders))
+		for i, order := range req.Orders {
+			orders[i] = map[string]interface{}{
+				"order_uuid": order.OrderUUID,
+			}
+		}
+		requestMap["orders"] = orders
+
+		if req.Copy != nil {
+			requestMap["copy_count"] = *req.Copy
+		}
+		if req.Format != nil {
+			requestMap["format"] = *req.Format
+		}
+
+		requestBody, err := json.Marshal(requestMap)
+		if err != nil {
+			return nil, fmt.Errorf("marshal request: %w", err)
+		}
+
+		// Вызов API
+		resp, err := s.client.ClientWithResponses().WaybillPrintWithBodyWithResponse(
+			ctx,
+			"application/json",
+			bytes.NewReader(requestBody),
+			func(ctx context.Context, r *http.Request) error {
+				r.Header.Set("Authorization", "Bearer "+token)
+				return nil
+			},
+		)
+		if err != nil {
+			return nil, fmt.Errorf("api call: %w", err)
+		}
+
+		// Чтение ответа
+		bodyBytes := resp.Body
+
+		// Проверка HTTP статуса
+		if resp.StatusCode() >= 400 {
+			httpResp := &http.Response{
+				StatusCode: resp.StatusCode(),
+				Body:       io.NopCloser(bytes.NewReader(bodyBytes)),
+			}
+			return nil, wrapHTTPError(httpResp)
+		}
+
+		// Парсим ответ
+		var printResp map[string]interface{}
+		if err := json.Unmarshal(bodyBytes, &printResp); err != nil {
+			return nil, fmt.Errorf("unmarshal response: %w", err)
+		}
+
+		response := &PrintResponse{}
+		if entity, ok := printResp["entity"].(map[string]interface{}); ok {
+			if uuid, ok := entity["uuid"].(string); ok {
+				response.UUID = uuid
+			}
+			if url, ok := entity["url"].(string); ok {
+				response.URL = url
+			}
+		}
+
+		return response, nil
+	})
+
+	if err != nil {
+		s.logger.Error().Err(err).Msg("create waybill print job failed")
+		return nil, err
+	}
+
+	printResp := result.(*PrintResponse)
+	s.logger.Info().
+		Str("uuid", printResp.UUID).
+		Msg("waybill print job created")
+
+	return printResp, nil
 }

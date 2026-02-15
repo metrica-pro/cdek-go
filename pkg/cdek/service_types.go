@@ -174,3 +174,34 @@ type PointLocation struct {
 	Latitude   float64 // Широта
 	Longitude  float64 // Долгота
 }
+
+// ========================
+// Print (Barcode/Waybill)
+// ========================
+
+// PrintBarcodeRequest - запрос на создание этикеток
+type PrintBarcodeRequest struct {
+	Orders []PrintOrder // Список заказов для печати
+	Copy   *int         // Количество копий (по умолчанию 1)
+	Format *string      // Формат: "A4", "A5", "A6" (по умолчанию A4)
+}
+
+// PrintWaybillRequest - запрос на создание накладных
+type PrintWaybillRequest struct {
+	Orders []PrintOrder // Список заказов для печати
+	Copy   *int         // Количество копий (по умолчанию 1)
+	Format *string      // Формат: "A4", "A5" (по умолчанию A4)
+}
+
+// PrintOrder - заказ для печати
+type PrintOrder struct {
+	OrderUUID string // UUID заказа
+}
+
+// PrintResponse - ответ на запрос печати
+type PrintResponse struct {
+	UUID      string // UUID задания на печать
+	URL       string // URL для скачивания PDF (доступен после готовности)
+	Status    string // Статус: "ACCEPTED", "PROCESSING", "READY", "INVALID"
+	CreatedAt string // Дата создания задания
+}
