@@ -859,3 +859,468 @@ func (s *Service) DownloadWaybill(ctx context.Context, printUUID string) ([]byte
 
 	return pdfBytes, nil
 }
+
+// ========================
+// Location Reference (Cities/Regions)
+// ========================
+
+// ListCities возвращает список городов из справочника СДЭК
+func (s *Service) ListCities(ctx context.Context, req *CitiesRequest) ([]City, error) {
+	s.logger.Info().Msg("listing cities")
+
+	// Выполнение через Circuit Breaker
+	result, err := s.breaker.Execute(func() (interface{}, error) {
+		// Получение токена
+		token, err := s.client.GetToken(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("get token: %w", err)
+		}
+
+		// Формируем query параметры
+		params := &CitiesParams{}
+		if req.CountryCode != nil {
+			params.CountryCodes = req.CountryCode
+		}
+		if req.RegionCode != nil {
+			regionCode := int32(*req.RegionCode)
+			params.RegionCode = &regionCode
+		}
+		if req.PostalCode != nil {
+			params.PostalCode = req.PostalCode
+		}
+		if req.Code != nil {
+			code := int32(*req.Code)
+			params.Code = &code
+		}
+		if req.City != nil {
+			params.City = req.City
+		}
+		if req.Size != nil {
+			size := int32(*req.Size)
+			params.Size = &size
+		}
+		if req.Page != nil {
+			page := int32(*req.Page)
+			params.Page = &page
+		}
+
+		// Вызов API
+		resp, err := s.client.ClientWithResponses().CitiesWithResponse(
+			ctx,
+			params,
+			func(ctx context.Context, r *http.Request) error {
+				r.Header.Set("Authorization", "Bearer "+token)
+				return nil
+			},
+		)
+		if err != nil {
+			return nil, fmt.Errorf("api call: %w", err)
+		}
+
+		// Чтение ответа
+		bodyBytes := resp.Body
+
+		// Проверка HTTP статуса
+		if resp.StatusCode() >= 400 {
+			httpResp := &http.Response{
+				StatusCode: resp.StatusCode(),
+				Body:       io.NopCloser(bytes.NewReader(bodyBytes)),
+			}
+			return nil, wrapHTTPError(httpResp)
+		}
+
+		// Преобразование CDEK Response → []City
+		return s.mapper.fromCDEKCities(bodyBytes)
+	})
+
+	if err != nil {
+		s.logger.Error().Err(err).Msg("list cities failed")
+		return nil, err
+	}
+
+	cities := result.([]City)
+	s.logger.Info().
+		Int("count", len(cities)).
+		Msg("list cities success")
+
+	return cities, nil
+}
+
+// ListRegions возвращает список регионов из справочника СДЭК
+func (s *Service) ListRegions(ctx context.Context, req *RegionsRequest) ([]Region, error) {
+	s.logger.Info().Msg("listing regions")
+
+	// Выполнение через Circuit Breaker
+	result, err := s.breaker.Execute(func() (interface{}, error) {
+		// Получение токена
+		token, err := s.client.GetToken(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("get token: %w", err)
+		}
+
+		// Формируем query параметры
+		params := &RegionsParams{}
+		if req.CountryCode != nil {
+			params.CountryCodes = req.CountryCode
+		}
+		if req.Size != nil {
+			size := int32(*req.Size)
+			params.Size = &size
+		}
+		if req.Page != nil {
+			page := int32(*req.Page)
+			params.Page = &page
+		}
+
+		// Вызов API
+		resp, err := s.client.ClientWithResponses().RegionsWithResponse(
+			ctx,
+			params,
+			func(ctx context.Context, r *http.Request) error {
+				r.Header.Set("Authorization", "Bearer "+token)
+				return nil
+			},
+		)
+		if err != nil {
+			return nil, fmt.Errorf("api call: %w", err)
+		}
+
+		// Чтение ответа
+		bodyBytes := resp.Body
+
+		// Проверка HTTP статуса
+		if resp.StatusCode() >= 400 {
+			httpResp := &http.Response{
+				StatusCode: resp.StatusCode(),
+				Body:       io.NopCloser(bytes.NewReader(bodyBytes)),
+			}
+			return nil, wrapHTTPError(httpResp)
+		}
+
+		// Преобразование CDEK Response → []Region
+		return s.mapper.fromCDEKRegions(bodyBytes)
+	})
+
+	if err != nil {
+		s.logger.Error().Err(err).Msg("list regions failed")
+		return nil, err
+	}
+
+	regions := result.([]Region)
+	s.logger.Info().
+		Int("count", len(regions)).
+		Msg("list regions success")
+
+	return regions, nil
+}
+
+// ========================
+// Intakes (Заявки на забор)
+// ========================
+
+// CreateIntake создает заявку на забор груза
+func (s *Service) CreateIntake(ctx context.Context, req *IntakeRequest) (*IntakeResponse, error) {
+	s.logger.Info().
+		Str("intake_date", req.IntakeDate).
+		Msg("creating intake")
+
+	// Выполнение через Circuit Breaker
+	result, err := s.breaker.Execute(func() (interface{}, error) {
+		// Преобразование Service Request → CDEK map
+		intakeMap, err := s.mapper.toCDEKIntakeRequest(req)
+		if err != nil {
+			return nil, fmt.Errorf("map request: %w", err)
+		}
+
+		// Получение токена
+		token, err := s.client.GetToken(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("get token: %w", err)
+		}
+
+		// Маршалинг в JSON
+		requestBody, err := json.Marshal(intakeMap)
+		if err != nil {
+			return nil, fmt.Errorf("marshal request: %w", err)
+		}
+
+		// Вызов API
+		resp, err := s.client.ClientWithResponses().CreateIntakeWithBodyWithResponse(
+			ctx,
+			"application/json",
+			bytes.NewReader(requestBody),
+			func(ctx context.Context, r *http.Request) error {
+				r.Header.Set("Authorization", "Bearer "+token)
+				return nil
+			},
+		)
+		if err != nil {
+			return nil, fmt.Errorf("api call: %w", err)
+		}
+
+		// Чтение ответа
+		bodyBytes := resp.Body
+
+		// Проверка HTTP статуса
+		if resp.StatusCode() >= 400 {
+			httpResp := &http.Response{
+				StatusCode: resp.StatusCode(),
+				Body:       io.NopCloser(bytes.NewReader(bodyBytes)),
+			}
+			return nil, wrapHTTPError(httpResp)
+		}
+
+		// Преобразование CDEK Response → IntakeResponse
+		return s.mapper.fromCDEKIntakeResponse(bodyBytes)
+	})
+
+	if err != nil {
+		s.logger.Error().Err(err).Msg("create intake failed")
+		return nil, err
+	}
+
+	intakeResp := result.(*IntakeResponse)
+	s.logger.Info().
+		Str("uuid", intakeResp.UUID).
+		Msg("create intake success")
+
+	return intakeResp, nil
+}
+
+// GetIntake получает информацию о заявке на забор
+func (s *Service) GetIntake(ctx context.Context, intakeUUID string) (*IntakeInfo, error) {
+	s.logger.Info().
+		Str("uuid", intakeUUID).
+		Msg("getting intake info")
+
+	// Выполнение через Circuit Breaker
+	result, err := s.breaker.Execute(func() (interface{}, error) {
+		// Получение токена
+		token, err := s.client.GetToken(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("get token: %w", err)
+		}
+
+		// Вызов API
+		resp, err := s.client.ClientWithResponses().GetByUuidWithResponse(
+			ctx,
+			intakeUUID,
+			func(ctx context.Context, r *http.Request) error {
+				r.Header.Set("Authorization", "Bearer "+token)
+				return nil
+			},
+		)
+		if err != nil {
+			return nil, fmt.Errorf("api call: %w", err)
+		}
+
+		// Чтение ответа
+		bodyBytes := resp.Body
+
+		// Проверка HTTP статуса
+		if resp.StatusCode() >= 400 {
+			httpResp := &http.Response{
+				StatusCode: resp.StatusCode(),
+				Body:       io.NopCloser(bytes.NewReader(bodyBytes)),
+			}
+			return nil, wrapHTTPError(httpResp)
+		}
+
+		// Преобразование CDEK Response → IntakeInfo
+		return s.mapper.fromCDEKIntakeInfo(bodyBytes)
+	})
+
+	if err != nil {
+		s.logger.Error().Err(err).Str("uuid", intakeUUID).Msg("get intake failed")
+		return nil, err
+	}
+
+	intakeInfo := result.(*IntakeInfo)
+	s.logger.Info().
+		Str("uuid", intakeInfo.UUID).
+		Msg("get intake success")
+
+	return intakeInfo, nil
+}
+
+// DeleteIntake отменяет заявку на забор
+func (s *Service) DeleteIntake(ctx context.Context, intakeUUID string) error {
+	s.logger.Info().
+		Str("uuid", intakeUUID).
+		Msg("deleting intake")
+
+	// Выполнение через Circuit Breaker
+	_, err := s.breaker.Execute(func() (interface{}, error) {
+		// Получение токена
+		token, err := s.client.GetToken(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("get token: %w", err)
+		}
+
+		// Вызов API
+		resp, err := s.client.ClientWithResponses().DeleteByUuidWithResponse(
+			ctx,
+			intakeUUID,
+			func(ctx context.Context, r *http.Request) error {
+				r.Header.Set("Authorization", "Bearer "+token)
+				return nil
+			},
+		)
+		if err != nil {
+			return nil, fmt.Errorf("api call: %w", err)
+		}
+
+		// Чтение ответа
+		bodyBytes := resp.Body
+
+		// Проверка HTTP статуса
+		if resp.StatusCode() >= 400 {
+			httpResp := &http.Response{
+				StatusCode: resp.StatusCode(),
+				Body:       io.NopCloser(bytes.NewReader(bodyBytes)),
+			}
+			return nil, wrapHTTPError(httpResp)
+		}
+
+		return nil, nil
+	})
+
+	if err != nil {
+		s.logger.Error().Err(err).Str("uuid", intakeUUID).Msg("delete intake failed")
+		return err
+	}
+
+	s.logger.Info().
+		Str("uuid", intakeUUID).
+		Msg("delete intake success")
+
+	return nil
+}
+
+// ========================
+// Webhooks
+// ========================
+
+// CreateWebhook регистрирует webhook для получения уведомлений
+func (s *Service) CreateWebhook(ctx context.Context, req *WebhookRequest) (*WebhookResponse, error) {
+	s.logger.Info().
+		Str("url", req.URL).
+		Str("type", req.Type).
+		Msg("creating webhook")
+
+	// Выполнение через Circuit Breaker
+	result, err := s.breaker.Execute(func() (interface{}, error) {
+		// Преобразование Service Request → CDEK map
+		webhookMap := map[string]interface{}{
+			"url":  req.URL,
+			"type": req.Type,
+		}
+
+		// Получение токена
+		token, err := s.client.GetToken(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("get token: %w", err)
+		}
+
+		// Маршалинг в JSON
+		requestBody, err := json.Marshal(webhookMap)
+		if err != nil {
+			return nil, fmt.Errorf("marshal request: %w", err)
+		}
+
+		// Вызов API
+		resp, err := s.client.ClientWithResponses().CreateV2WebhooksWithBodyWithResponse(
+			ctx,
+			"application/json",
+			bytes.NewReader(requestBody),
+			func(ctx context.Context, r *http.Request) error {
+				r.Header.Set("Authorization", "Bearer "+token)
+				return nil
+			},
+		)
+		if err != nil {
+			return nil, fmt.Errorf("api call: %w", err)
+		}
+
+		// Чтение ответа
+		bodyBytes := resp.Body
+
+		// Проверка HTTP статуса
+		if resp.StatusCode() >= 400 {
+			httpResp := &http.Response{
+				StatusCode: resp.StatusCode(),
+				Body:       io.NopCloser(bytes.NewReader(bodyBytes)),
+			}
+			return nil, wrapHTTPError(httpResp)
+		}
+
+		// Преобразование CDEK Response → WebhookResponse
+		return s.mapper.fromCDEKWebhookResponse(bodyBytes)
+	})
+
+	if err != nil {
+		s.logger.Error().Err(err).Msg("create webhook failed")
+		return nil, err
+	}
+
+	webhookResp := result.(*WebhookResponse)
+	s.logger.Info().
+		Str("uuid", webhookResp.UUID).
+		Msg("create webhook success")
+
+	return webhookResp, nil
+}
+
+// ListWebhooks возвращает список зарегистрированных webhooks
+func (s *Service) ListWebhooks(ctx context.Context) ([]Webhook, error) {
+	s.logger.Info().Msg("listing webhooks")
+
+	// Выполнение через Circuit Breaker
+	result, err := s.breaker.Execute(func() (interface{}, error) {
+		// Получение токена
+		token, err := s.client.GetToken(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("get token: %w", err)
+		}
+
+		// Вызов API
+		resp, err := s.client.ClientWithResponses().GetAllWithResponse(
+			ctx,
+			nil, // params
+			func(ctx context.Context, r *http.Request) error {
+				r.Header.Set("Authorization", "Bearer "+token)
+				return nil
+			},
+		)
+		if err != nil {
+			return nil, fmt.Errorf("api call: %w", err)
+		}
+
+		// Чтение ответа
+		bodyBytes := resp.Body
+
+		// Проверка HTTP статуса
+		if resp.StatusCode() >= 400 {
+			httpResp := &http.Response{
+				StatusCode: resp.StatusCode(),
+				Body:       io.NopCloser(bytes.NewReader(bodyBytes)),
+			}
+			return nil, wrapHTTPError(httpResp)
+		}
+
+		// Преобразование CDEK Response → []Webhook
+		return s.mapper.fromCDEKWebhooks(bodyBytes)
+	})
+
+	if err != nil {
+		s.logger.Error().Err(err).Msg("list webhooks failed")
+		return nil, err
+	}
+
+	webhooks := result.([]Webhook)
+	s.logger.Info().
+		Int("count", len(webhooks)).
+		Msg("list webhooks success")
+
+	return webhooks, nil
+}

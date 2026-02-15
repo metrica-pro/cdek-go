@@ -64,12 +64,15 @@ type Contact struct {
 }
 
 // Recipient - информация о получателе (расширяет Contact)
+// Может быть как физическое лицо (Name + паспорт), так и компания (Company + ИНН)
 type Recipient struct {
-	Contact                 // Базовая контактная информация
-	PassportSeries          *string // Серия паспорта
-	PassportNumber          *string // Номер паспорта
-	PassportDateOfIssue     *string // Дата выдачи паспорта
-	PassportOrganization    *string // Кем выдан паспорт
+	Contact                 // Базовая контактная информация (Name обязательно для физлица, Company для юрлица)
+	TIN                     *string // ИНН (Tax Identification Number) - для юридических лиц и ИП (10 или 12 символов)
+	PassportSeries          *string // Серия паспорта (для физических лиц)
+	PassportNumber          *string // Номер паспорта (для физических лиц)
+	PassportDateOfIssue     *string // Дата выдачи паспорта (для физических лиц)
+	PassportOrganization    *string // Кем выдан паспорт (для физических лиц)
+	PassportDateOfBirth     *string // Дата рождения (yyyy-MM-dd) (для физических лиц)
 }
 
 // Phone - телефонный номер
@@ -233,4 +236,127 @@ type PrintResponse struct {
 	URL       string // URL для скачивания PDF (доступен после готовности)
 	Status    string // Статус: "ACCEPTED", "PROCESSING", "READY", "INVALID"
 	CreatedAt string // Дата создания задания
+}
+
+// ========================
+// Location Reference (Cities/Regions)
+// ========================
+
+// CitiesRequest - запрос на получение списка городов
+type CitiesRequest struct {
+	CountryCode *string // Код страны (ISO 3166-1 alpha-2)
+	RegionCode  *int    // Код региона
+	FiasGuid    *string // ФИАС код
+	PostalCode  *string // Почтовый индекс
+	Code        *int    // Код населенного пункта СДЭК
+	City        *string // Название города (поиск)
+	Size        *int    // Количество результатов (по умолчанию 1000)
+	Page        *int    // Номер страницы
+}
+
+// City - город из справочника СДЭК
+type City struct {
+	Code          int     // Код населенного пункта СДЭК
+	City          string  // Название города
+	FiasGuid      *string // Уникальный идентификатор ФИАС
+	Region        string  // Регион
+	RegionCode    int     // Код региона
+	Country       string  // Страна
+	CountryCode   string  // Код страны
+	Latitude      float64 // Широта
+	Longitude     float64 // Долгота
+	TimeZone      string  // Часовой пояс
+	PaymentLimit  float64 // Ограничение оплаты наличными
+	PostalCodes   []string // Почтовые индексы
+}
+
+// RegionsRequest - запрос на получение списка регионов
+type RegionsRequest struct {
+	CountryCode *string // Код страны (ISO 3166-1 alpha-2)
+	RegionCode  *int    // Код региона
+	Region      *string // Название региона (поиск)
+	Size        *int    // Количество результатов
+	Page        *int    // Номер страницы
+}
+
+// Region - регион из справочника СДЭК
+type Region struct {
+	Code        int     // Код региона
+	Region      string  // Название региона
+	Country     string  // Страна
+	CountryCode string  // Код страны
+	FiasGuid    *string // ФИАС код региона
+}
+
+// ========================
+// Intake (Заявка на забор)
+// ========================
+
+// IntakeRequest - запрос на создание заявки на забор груза
+type IntakeRequest struct {
+	IntakeDate   string          // Дата ожидаемого забора (ISO 8601: YYYY-MM-DD)
+	IntakeTimeFrom string        // Время начала ожидания (HH:MM)
+	IntakeTimeTo   string        // Время окончания ожидания (HH:MM)
+	LunchTimeFrom  *string       // Время начала обеда (HH:MM)
+	LunchTimeTo    *string       // Время окончания обеда (HH:MM)
+	Comment        *string       // Комментарий
+	Sender         Contact       // Отправитель
+	FromLocation   Location      // Адрес забора
+	NeedCall       *bool         // Нужен ли звонок
+	Orders         []IntakeOrder // Список заказов для забора
+}
+
+// IntakeOrder - заказ в заявке на забор
+type IntakeOrder struct {
+	OrderUUID string // UUID заказа
+}
+
+// IntakeResponse - ответ при создании заявки на забор
+type IntakeResponse struct {
+	UUID       string // UUID заявки
+	Number     string // Номер заявки СДЭК
+	IntakeDate string // Дата забора
+	Status     string // Статус заявки
+	CreatedAt  string // Дата создания
+}
+
+// IntakeInfo - информация о заявке на забор
+type IntakeInfo struct {
+	UUID           string          // UUID заявки
+	Number         string          // Номер заявки
+	IntakeDate     string          // Дата забора
+	IntakeTimeFrom string          // Время начала
+	IntakeTimeTo   string          // Время окончания
+	Status         string          // Статус
+	Sender         Contact         // Отправитель
+	FromLocation   Location        // Адрес забора
+	Orders         []IntakeOrder   // Заказы
+	CreatedAt      string          // Дата создания
+}
+
+// ========================
+// Webhooks
+// ========================
+
+// WebhookRequest - запрос на создание webhook
+type WebhookRequest struct {
+	URL  string   // URL для получения уведомлений
+	Type string   // Тип события: "ORDER_STATUS", "PRINT_FORM", "DELIVERY_STATUS"
+}
+
+// WebhookResponse - ответ при создании webhook
+type WebhookResponse struct {
+	UUID      string // UUID webhook
+	URL       string // URL
+	Type      string // Тип события
+	IsActive  bool   // Активен ли webhook
+	CreatedAt string // Дата создания
+}
+
+// Webhook - информация о webhook
+type Webhook struct {
+	UUID     string // UUID webhook
+	URL      string // URL
+	Type     string // Тип события
+	IsActive bool   // Активен ли
 }

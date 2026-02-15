@@ -163,12 +163,25 @@ func (m *dtoMapper) toCDEKOrderRequest(req *OrderRequest) (map[string]interface{
 		}
 		recipient["phones"] = phones
 	}
-	// Паспортные данные
+	// ИНН (для юридических лиц и ИП)
+	if req.Recipient.TIN != nil {
+		recipient["tin"] = *req.Recipient.TIN
+	}
+	// Паспортные данные (для физических лиц)
 	if req.Recipient.PassportSeries != nil {
 		recipient["passport_series"] = *req.Recipient.PassportSeries
 	}
 	if req.Recipient.PassportNumber != nil {
 		recipient["passport_number"] = *req.Recipient.PassportNumber
+	}
+	if req.Recipient.PassportDateOfIssue != nil {
+		recipient["passport_date_of_issue"] = *req.Recipient.PassportDateOfIssue
+	}
+	if req.Recipient.PassportOrganization != nil {
+		recipient["passport_organization"] = *req.Recipient.PassportOrganization
+	}
+	if req.Recipient.PassportDateOfBirth != nil {
+		recipient["passport_date_of_birth"] = *req.Recipient.PassportDateOfBirth
 	}
 	order["recipient"] = recipient
 
@@ -578,6 +591,26 @@ func (m *dtoMapper) fromCDEKOrderToInfo(data []byte) (*OrderInfo, error) {
 				}
 			}
 		}
+		// ИНН (для юридических лиц)
+		if tin, ok := recipient["tin"].(string); ok {
+			info.Recipient.TIN = &tin
+		}
+		// Паспортные данные (для физических лиц)
+		if passportSeries, ok := recipient["passport_series"].(string); ok {
+			info.Recipient.PassportSeries = &passportSeries
+		}
+		if passportNumber, ok := recipient["passport_number"].(string); ok {
+			info.Recipient.PassportNumber = &passportNumber
+		}
+		if passportDateOfIssue, ok := recipient["passport_date_of_issue"].(string); ok {
+			info.Recipient.PassportDateOfIssue = &passportDateOfIssue
+		}
+		if passportOrg, ok := recipient["passport_organization"].(string); ok {
+			info.Recipient.PassportOrganization = &passportOrg
+		}
+		if passportDOB, ok := recipient["passport_date_of_birth"].(string); ok {
+			info.Recipient.PassportDateOfBirth = &passportDOB
+		}
 	}
 
 	// Статусы
@@ -755,4 +788,152 @@ func (m *dtoMapper) toCDEKUpdateOrderRequest(req *UpdateOrderRequest) (map[strin
 	}
 
 	return update, nil
+}
+
+// ========================
+// Location Reference (Cities/Regions)
+// ========================
+
+// fromCDEKCities преобразует Cities ответ → []City
+func (m *dtoMapper) fromCDEKCities(data []byte) ([]City, error) {
+	var rawResp []map[string]interface{}
+	if err := json.Unmarshal(data, &rawResp); err != nil {
+		return nil, fmt.Errorf("unmarshal cities: %w", err)
+	}
+
+	cities := make([]City, 0, len(rawResp))
+	for _, c := range rawResp {
+		city := City{}
+		if code, ok := c["code"].(float64); ok {
+			city.Code = int(code)
+		}
+		if cityName, ok := c["city"].(string); ok {
+			city.City = cityName
+		}
+		if region, ok := c["region"].(string); ok {
+			city.Region = region
+		}
+		if country, ok := c["country"].(string); ok {
+			city.Country = country
+		}
+		if countryCode, ok := c["country_code"].(string); ok {
+			city.CountryCode = countryCode
+		}
+		cities = append(cities, city)
+	}
+	return cities, nil
+}
+
+// fromCDEKRegions преобразует Regions ответ → []Region
+func (m *dtoMapper) fromCDEKRegions(data []byte) ([]Region, error) {
+	var rawResp []map[string]interface{}
+	if err := json.Unmarshal(data, &rawResp); err != nil {
+		return nil, fmt.Errorf("unmarshal regions: %w", err)
+	}
+
+	regions := make([]Region, 0, len(rawResp))
+	for _, r := range rawResp {
+		region := Region{}
+		if code, ok := r["region_code"].(float64); ok {
+			region.Code = int(code)
+		}
+		if regionName, ok := r["region"].(string); ok {
+			region.Region = regionName
+		}
+		if country, ok := r["country"].(string); ok {
+			region.Country = country
+		}
+		regions = append(regions, region)
+	}
+	return regions, nil
+}
+
+// ========================
+// Intakes
+// ========================
+
+// toCDEKIntakeRequest преобразует IntakeRequest → map для Intake API
+func (m *dtoMapper) toCDEKIntakeRequest(req *IntakeRequest) (map[string]interface{}, error) {
+	intake := map[string]interface{}{
+		"intake_date":      req.IntakeDate,
+		"intake_time_from": req.IntakeTimeFrom,
+		"intake_time_to":   req.IntakeTimeTo,
+		"sender":           map[string]interface{}{"name": req.Sender.Name},
+	}
+	if req.Comment != nil {
+		intake["comment"] = *req.Comment
+	}
+	return intake, nil
+}
+
+// fromCDEKIntakeResponse преобразует Intake ответ → IntakeResponse
+func (m *dtoMapper) fromCDEKIntakeResponse(data []byte) (*IntakeResponse, error) {
+	var rawResp map[string]interface{}
+	if err := json.Unmarshal(data, &rawResp); err != nil {
+		return nil, fmt.Errorf("unmarshal intake response: %w", err)
+	}
+	intakeResp := &IntakeResponse{}
+	if entity, ok := rawResp["entity"].(map[string]interface{}); ok {
+		if uuid, ok := entity["uuid"].(string); ok {
+			intakeResp.UUID = uuid
+		}
+	}
+	return intakeResp, nil
+}
+
+// fromCDEKIntakeInfo преобразует GetIntake ответ → IntakeInfo
+func (m *dtoMapper) fromCDEKIntakeInfo(data []byte) (*IntakeInfo, error) {
+	var rawResp map[string]interface{}
+	if err := json.Unmarshal(data, &rawResp); err != nil {
+		return nil, fmt.Errorf("unmarshal intake info: %w", err)
+	}
+	info := &IntakeInfo{}
+	if entity, ok := rawResp["entity"].(map[string]interface{}); ok {
+		if uuid, ok := entity["uuid"].(string); ok {
+			info.UUID = uuid
+		}
+	}
+	return info, nil
+}
+
+// ========================
+// Webhooks
+// ========================
+
+// fromCDEKWebhookResponse преобразует CreateWebhook ответ → WebhookResponse
+func (m *dtoMapper) fromCDEKWebhookResponse(data []byte) (*WebhookResponse, error) {
+	var rawResp map[string]interface{}
+	if err := json.Unmarshal(data, &rawResp); err != nil {
+		return nil, fmt.Errorf("unmarshal webhook response: %w", err)
+	}
+	webhookResp := &WebhookResponse{}
+	if entity, ok := rawResp["entity"].(map[string]interface{}); ok {
+		if uuid, ok := entity["uuid"].(string); ok {
+			webhookResp.UUID = uuid
+		}
+		if url, ok := entity["url"].(string); ok {
+			webhookResp.URL = url
+		}
+	}
+	return webhookResp, nil
+}
+
+// fromCDEKWebhooks преобразует ListWebhooks ответ → []Webhook
+func (m *dtoMapper) fromCDEKWebhooks(data []byte) ([]Webhook, error) {
+	var rawResp []map[string]interface{}
+	if err := json.Unmarshal(data, &rawResp); err != nil {
+		return nil, fmt.Errorf("unmarshal webhooks: %w", err)
+	}
+	webhooks := make([]Webhook, 0, len(rawResp))
+	for _, w := range rawResp {
+		webhook := Webhook{}
+		if uuid, ok := w["uuid"].(string); ok {
+			webhook.UUID = uuid
+		}
+		if url, ok := w["url"].(string); ok {
+			webhook.URL = url
+		}
+		webhooks = append(webhooks, webhook)
+	}
+	return webhooks, nil
 }
