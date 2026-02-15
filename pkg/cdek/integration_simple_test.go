@@ -253,9 +253,11 @@ func createTestOrder(t *testing.T, service *Service, ctx context.Context) *Order
 	req := &OrderRequest{
 		Type:       "1", // интернет-магазин
 		TariffCode: 136, // Посылка склад-склад (самый дешевый)
-		Sender: Contact{
-			Name:   "Тестовый отправитель",
-			Phones: []Phone{{Number: "+79099999999"}},
+		Sender: Recipient{
+			Contact: Contact{
+				Name:   "Тестовый отправитель",
+				Phones: []Phone{{Number: "+79099999999"}},
+			},
 		},
 		Recipient: Recipient{
 			Contact: Contact{
@@ -308,9 +310,11 @@ func TestSimple_ServiceCreateOrder(t *testing.T) {
 	req := &OrderRequest{
 		Type:       "1", // интернет-магазин
 		TariffCode: 136, // Посылка склад-склад
-		Sender: Contact{
-			Name:   "Тестовый магазин",
-			Phones: []Phone{{Number: "+79099999999"}},
+		Sender: Recipient{
+			Contact: Contact{
+				Name:   "Тестовый магазин",
+				Phones: []Phone{{Number: "+79099999999"}},
+			},
 		},
 		Recipient: Recipient{
 			Contact: Contact{
@@ -830,7 +834,7 @@ func TestSimple_ServiceListWebhooks(t *testing.T) {
 		if i >= 3 {
 			break
 		}
-		t.Logf("  [%d] %s (type: %s, active: %v)", i+1, webhook.URL, webhook.Type, webhook.IsActive)
+		t.Logf("  [%d] %s (type: %s)", i+1, webhook.URL, webhook.Type)
 	}
 }
 
@@ -858,5 +862,4 @@ func TestSimple_ServiceCreateWebhook(t *testing.T) {
 
 	t.Logf("✅ Service.CreateWebhook: webhook создан")
 	t.Logf("  UUID: %s", webhook.UUID)
-	t.Logf("  URL: %s", webhook.URL)
 }

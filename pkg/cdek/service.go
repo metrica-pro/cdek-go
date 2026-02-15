@@ -348,7 +348,7 @@ func (s *Service) ListDeliveryPoints(ctx context.Context, req *DeliveryPointsReq
 		if err != nil {
 			return nil, fmt.Errorf("api call: %w", err)
 		}
-		defer httpResp.Body.Close()
+		defer func() { _ = httpResp.Body.Close() }()
 
 		// Проверка HTTP статуса
 		if httpResp.StatusCode >= 400 {
@@ -1322,4 +1322,115 @@ func (s *Service) ListWebhooks(ctx context.Context) ([]Webhook, error) {
 		Msg("list webhooks success")
 
 	return webhooks, nil
+}
+
+// GetWebhook получает информацию о конкретном webhook
+func (s *Service) GetWebhook(ctx context.Context, webhookUUID string) (*Webhook, error) {
+	s.logger.Info().
+		Str("uuid", webhookUUID).
+		Msg("getting webhook")
+
+	// Выполнение через Circuit Breaker
+	result, err := s.breaker.Execute(func() (interface{}, error) {
+		// Получение токена
+		token, err := s.client.GetToken(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("get token: %w", err)
+		}
+
+		// Вызов API
+		resp, err := s.client.ClientWithResponses().GetByIdWithResponse(
+			ctx,
+			webhookUUID,
+			func(ctx context.Context, r *http.Request) error {
+				r.Header.Set("Authorization", "Bearer "+token)
+				return nil
+			},
+		)
+		if err != nil {
+			return nil, fmt.Errorf("api call: %w", err)
+		}
+
+		// Чтение ответа
+		bodyBytes := resp.Body
+
+		// Проверка HTTP статуса
+		if resp.StatusCode() >= 400 {
+			httpResp := &http.Response{
+				StatusCode: resp.StatusCode(),
+				Body:       io.NopCloser(bytes.NewReader(bodyBytes)),
+			}
+			return nil, wrapHTTPError(httpResp)
+		}
+
+		// Преобразование CDEK Response → Webhook
+		return s.mapper.fromCDEKWebhook(bodyBytes)
+	})
+
+	if err != nil {
+		s.logger.Error().Err(err).Str("uuid", webhookUUID).Msg("get webhook failed")
+		return nil, err
+	}
+
+	webhook := result.(*Webhook)
+	s.logger.Info().
+		Str("uuid", webhook.UUID).
+		Str("type", webhook.Type).
+		Msg("get webhook success")
+
+	return webhook, nil
+}
+
+// DeleteWebhook удаляет webhook
+func (s *Service) DeleteWebhook(ctx context.Context, webhookUUID string) error {
+	s.logger.Info().
+		Str("uuid", webhookUUID).
+		Msg("deleting webhook")
+
+	// Выполнение через Circuit Breaker
+	_, err := s.breaker.Execute(func() (interface{}, error) {
+		// Получение токена
+		token, err := s.client.GetToken(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("get token: %w", err)
+		}
+
+		// Вызов API
+		resp, err := s.client.ClientWithResponses().DeleteByIdWithResponse(
+			ctx,
+			webhookUUID,
+			func(ctx context.Context, r *http.Request) error {
+				r.Header.Set("Authorization", "Bearer "+token)
+				return nil
+			},
+		)
+		if err != nil {
+			return nil, fmt.Errorf("api call: %w", err)
+		}
+
+		// Чтение ответа
+		bodyBytes := resp.Body
+
+		// Проверка HTTP статуса
+		if resp.StatusCode() >= 400 {
+			httpResp := &http.Response{
+				StatusCode: resp.StatusCode(),
+				Body:       io.NopCloser(bytes.NewReader(bodyBytes)),
+			}
+			return nil, wrapHTTPError(httpResp)
+		}
+
+		return nil, nil
+	})
+
+	if err != nil {
+		s.logger.Error().Err(err).Str("uuid", webhookUUID).Msg("delete webhook failed")
+		return err
+	}
+
+	s.logger.Info().
+		Str("uuid", webhookUUID).
+		Msg("delete webhook success")
+
+	return nil
 }

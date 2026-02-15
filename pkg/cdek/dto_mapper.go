@@ -578,7 +578,7 @@ func (m *dtoMapper) fromCDEKOrderToInfo(data []byte) (*OrderInfo, error) {
 		info.TariffCode = int(tariff)
 	}
 
-	// Отправитель
+	// Отправитель (теперь Recipient с поддержкой ИНН и паспорта)
 	if sender, ok := entity["sender"].(map[string]interface{}); ok {
 		if name, ok := sender["name"].(string); ok {
 			info.Sender.Name = name
@@ -603,6 +603,26 @@ func (m *dtoMapper) fromCDEKOrderToInfo(data []byte) (*OrderInfo, error) {
 					info.Sender.Phones = append(info.Sender.Phones, phoneObj)
 				}
 			}
+		}
+		// ИНН (для юридических лиц)
+		if tin, ok := sender["tin"].(string); ok {
+			info.Sender.TIN = &tin
+		}
+		// Паспортные данные (для физических лиц)
+		if passportSeries, ok := sender["passport_series"].(string); ok {
+			info.Sender.PassportSeries = &passportSeries
+		}
+		if passportNumber, ok := sender["passport_number"].(string); ok {
+			info.Sender.PassportNumber = &passportNumber
+		}
+		if passportDateOfIssue, ok := sender["passport_date_of_issue"].(string); ok {
+			info.Sender.PassportDateOfIssue = &passportDateOfIssue
+		}
+		if passportOrg, ok := sender["passport_organization"].(string); ok {
+			info.Sender.PassportOrganization = &passportOrg
+		}
+		if passportDOB, ok := sender["passport_date_of_birth"].(string); ok {
+			info.Sender.PassportDateOfBirth = &passportDOB
 		}
 	}
 
@@ -651,6 +671,27 @@ func (m *dtoMapper) fromCDEKOrderToInfo(data []byte) (*OrderInfo, error) {
 		}
 		if passportDOB, ok := recipient["passport_date_of_birth"].(string); ok {
 			info.Recipient.PassportDateOfBirth = &passportDOB
+		}
+	}
+
+	// Продавец (третье лицо, для интернет-магазинов)
+	if seller, ok := entity["seller"].(map[string]interface{}); ok {
+		info.Seller = &Seller{}
+		if name, ok := seller["name"].(string); ok {
+			info.Seller.Name = &name
+		}
+		if inn, ok := seller["inn"].(string); ok {
+			info.Seller.INN = &inn
+		}
+		if phone, ok := seller["phone"].(string); ok {
+			info.Seller.Phone = &phone
+		}
+		if ownership, ok := seller["ownership_form"].(float64); ok {
+			ownershipInt := int(ownership)
+			info.Seller.OwnershipForm = &ownershipInt
+		}
+		if address, ok := seller["address"].(string); ok {
+			info.Seller.Address = &address
 		}
 	}
 
@@ -1013,11 +1054,30 @@ func (m *dtoMapper) fromCDEKWebhookResponse(data []byte) (*WebhookResponse, erro
 		if uuid, ok := entity["uuid"].(string); ok {
 			webhookResp.UUID = uuid
 		}
-		if url, ok := entity["url"].(string); ok {
-			webhookResp.URL = url
-		}
 	}
 	return webhookResp, nil
+}
+
+// fromCDEKWebhook преобразует GetWebhook ответ → Webhook
+func (m *dtoMapper) fromCDEKWebhook(data []byte) (*Webhook, error) {
+	var rawResp map[string]interface{}
+	if err := json.Unmarshal(data, &rawResp); err != nil {
+		return nil, fmt.Errorf("unmarshal webhook: %w", err)
+	}
+
+	webhook := &Webhook{}
+	if entity, ok := rawResp["entity"].(map[string]interface{}); ok {
+		if uuid, ok := entity["uuid"].(string); ok {
+			webhook.UUID = uuid
+		}
+		if url, ok := entity["url"].(string); ok {
+			webhook.URL = url
+		}
+		if webhookType, ok := entity["type"].(string); ok {
+			webhook.Type = webhookType
+		}
+	}
+	return webhook, nil
 }
 
 // fromCDEKWebhooks преобразует ListWebhooks ответ → []Webhook
@@ -1034,6 +1094,9 @@ func (m *dtoMapper) fromCDEKWebhooks(data []byte) ([]Webhook, error) {
 		}
 		if url, ok := w["url"].(string); ok {
 			webhook.URL = url
+		}
+		if webhookType, ok := w["type"].(string); ok {
+			webhook.Type = webhookType
 		}
 		webhooks = append(webhooks, webhook)
 	}

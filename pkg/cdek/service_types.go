@@ -159,8 +159,9 @@ type OrderInfo struct {
 	Number            *string        // Номер заказа CDEK
 	Type              string         // Тип заказа
 	TariffCode        int            // Код тарифа
-	Sender            Contact        // Отправитель
-	Recipient         Recipient      // Получатель
+	Sender            Recipient      // Отправитель (может быть компания с ИНН)
+	Recipient         Recipient      // Получатель (может быть компания с ИНН)
+	Seller            *Seller        // Продавец (третье лицо, для интернет-магазинов)
 	FromLocation      Location       // Адрес отправления
 	ToLocation        Location       // Адрес доставки
 	Packages          []OrderPackage // Список мест
@@ -350,25 +351,34 @@ type IntakeInfo struct {
 // Webhooks
 // ========================
 
+// Типы событий webhook
+const (
+	WebhookTypeOrderStatus         = "ORDER_STATUS"          // Изменение статуса заказа
+	WebhookTypeOrderModified       = "ORDER_MODIFIED"        // Изменение заказа
+	WebhookTypePrintForm           = "PRINT_FORM"            // Готовность печатной формы
+	WebhookTypeReceipt             = "RECEIPT"               // Квитанция
+	WebhookTypePrealertClosed      = "PREALERT_CLOSED"       // Закрытие преалерта
+	WebhookTypeAccompanyingWaybill = "ACCOMPANYING_WAYBILL"  // Информация о транспорте
+	WebhookTypeOfficeAvailability  = "OFFICE_AVAILABILITY"   // Доступность офиса
+	WebhookTypeDelivAgreement      = "DELIV_AGREEMENT"       // Договоренность о доставке
+	WebhookTypeDelivProblem        = "DELIV_PROBLEM"         // Проблемы доставки
+	WebhookTypeCourierInfo         = "COURIER_INFO"          // Информация о курьере
+)
+
 // WebhookRequest - запрос на создание webhook
 type WebhookRequest struct {
-	URL  string   // URL для получения уведомлений
-	Type string   // Тип события: "ORDER_STATUS", "PRINT_FORM", "DELIVERY_STATUS"
+	URL  string // URL для получения уведомлений (обязательно)
+	Type string // Тип события (обязательно): ORDER_STATUS, PRINT_FORM, etc.
 }
 
 // WebhookResponse - ответ при создании webhook
 type WebhookResponse struct {
-	UUID      string // UUID webhook
-	URL       string // URL
-	Type      string // Тип события
-	IsActive  bool   // Активен ли webhook
-	CreatedAt string // Дата создания
+	UUID string // UUID созданного webhook
 }
 
 // Webhook - информация о webhook
 type Webhook struct {
-	UUID     string // UUID webhook
-	URL      string // URL
-	Type     string // Тип события
-	IsActive bool   // Активен ли
+	UUID string // UUID webhook
+	URL  string // URL для уведомлений
+	Type string // Тип события
 }
