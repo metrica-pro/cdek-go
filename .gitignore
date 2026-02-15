@@ -41,6 +41,7 @@ dist/
 *.tmp
 *.temp
 *.log
+tmp/
 
 # Build output
 bin/
