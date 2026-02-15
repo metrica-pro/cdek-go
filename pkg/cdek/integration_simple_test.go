@@ -61,9 +61,40 @@ func TestSimple_OAuth2(t *testing.T) {
 	t.Logf("✅ OAuth2: токен получен (%d символов)", len(token))
 }
 
+func TestSimple_ServiceCalculateCost(t *testing.T) {
+	client := getSimpleTestClient(t)
+	service := NewService(client, nil)
+	ctx := context.Background()
+
+	// Расчет стоимости доставки Москва → Новосибирск
+	req := &CostRequest{
+		FromCityCode: 44,  // Москва
+		ToCityCode:   270, // Новосибирск
+		Packages: []Package{
+			{Weight: 1000, Length: 20, Width: 15, Height: 10}, // 1 кг, 20x15x10 см
+		},
+	}
+
+	resp, err := service.CalculateCost(ctx, req)
+	if err != nil {
+		t.Fatalf("CalculateCost() error = %v", err)
+	}
+
+	if len(resp.Tariffs) == 0 {
+		t.Error("Expected at least one tariff")
+	}
+
+	t.Logf("✅ Service.CalculateCost: получено %d тарифов", len(resp.Tariffs))
+	for i, tariff := range resp.Tariffs {
+		t.Logf("  [%d] %s: %.2f руб, %d-%d дней (код %d)",
+			i+1, tariff.TariffName, tariff.DeliverySum,
+			tariff.PeriodMin, tariff.PeriodMax, tariff.TariffCode)
+	}
+}
+
 func TestSimple_HealthCheck(t *testing.T) {
 	client := getSimpleTestClient(t)
-	service := NewService(client)
+	service := NewService(client, nil)
 	ctx := context.Background()
 
 	err := service.HealthCheck(ctx)

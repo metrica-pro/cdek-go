@@ -217,18 +217,50 @@ func TestCostCalculator(t *testing.T) {
 
 	calculator := newCostCalculator(client)
 
-	t.Run("calculate with nil request", func(t *testing.T) {
-		_, err := calculator.calculate(context.Background(), nil)
+	t.Run("validate with nil request", func(t *testing.T) {
+		err := calculator.validate(nil)
 		if err == nil {
 			t.Error("Expected error for nil request")
 		}
 	})
 
-	t.Run("calculate with non-nil request", func(t *testing.T) {
-		// Этот тест вернет ошибку "not implemented" т.к. метод заглушка
-		_, err := calculator.calculate(context.Background(), map[string]string{})
+	t.Run("validate with valid request", func(t *testing.T) {
+		req := &CostRequest{
+			FromCityCode: 44,  // Москва
+			ToCityCode:   270, // Новосибирск
+			Packages: []Package{
+				{Weight: 1000, Length: 20, Width: 15, Height: 10},
+			},
+		}
+		err := calculator.validate(req)
+		if err != nil {
+			t.Errorf("Expected no error for valid request, got: %v", err)
+		}
+	})
+
+	t.Run("validate with empty packages", func(t *testing.T) {
+		req := &CostRequest{
+			FromCityCode: 44,
+			ToCityCode:   270,
+			Packages:     []Package{},
+		}
+		err := calculator.validate(req)
 		if err == nil {
-			t.Error("Expected not implemented error")
+			t.Error("Expected error for empty packages")
+		}
+	})
+
+	t.Run("validate with zero weight", func(t *testing.T) {
+		req := &CostRequest{
+			FromCityCode: 44,
+			ToCityCode:   270,
+			Packages: []Package{
+				{Weight: 0, Length: 20, Width: 15, Height: 10},
+			},
+		}
+		err := calculator.validate(req)
+		if err == nil {
+			t.Error("Expected error for zero weight")
 		}
 	})
 }

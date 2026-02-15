@@ -19,13 +19,16 @@ func TestNewService(t *testing.T) {
 		t.Fatalf("NewAuthenticatedClient() error = %v", err)
 	}
 
-	service := NewService(client)
+	service := NewService(client, nil)
 
 	if service == nil {
 		t.Fatal("NewService() returned nil")
 	}
 	if service.client != client {
 		t.Error("Service client doesn't match")
+	}
+	if service.breaker == nil {
+		t.Error("Circuit breaker not initialized")
 	}
 	if service.costCalculator == nil {
 		t.Error("Cost calculator not initialized")
@@ -35,6 +38,9 @@ func TestNewService(t *testing.T) {
 	}
 	if service.parser == nil {
 		t.Error("Parser not initialized")
+	}
+	if service.mapper == nil {
+		t.Error("Mapper not initialized")
 	}
 }
 
@@ -47,7 +53,7 @@ func TestService_GetClient(t *testing.T) {
 	}
 
 	authClient, _ := NewAuthenticatedClient(config)
-	service := NewService(authClient)
+	service := NewService(authClient, nil)
 
 	client := service.GetClient()
 	if client == nil {
@@ -69,7 +75,7 @@ func TestService_HealthCheck(t *testing.T) {
 		}
 
 		client, _ := NewAuthenticatedClient(config)
-		service := NewService(client)
+		service := NewService(client, nil)
 
 		ctx := context.Background()
 		err := service.HealthCheck(ctx)
@@ -90,7 +96,7 @@ func TestService_HealthCheck(t *testing.T) {
 		}
 
 		client, _ := NewAuthenticatedClient(config)
-		service := NewService(client)
+		service := NewService(client, nil)
 
 		ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
 		defer cancel()

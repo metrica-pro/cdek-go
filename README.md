@@ -8,13 +8,13 @@
 
 ## Возможности
 
-- ✅ OAuth2 авторизация с автоматическим обновлением токенов
-- ✅ Мультиаккаунт поддержка (несколько аккаунтов CDEK одновременно)
-- ✅ High-level API обертка для упрощения работы
-- ✅ Полное покрытие 40+ CDEK API endpoints
-- ✅ Thread-safe реализация
-- ✅ Автогенерированный клиент из OpenAPI спецификации
-- ✅ Покрытие тестами 89%
+- ✅ **OAuth2** авторизация с автоматическим обновлением токенов
+- ✅ **Мультиаккаунт** поддержка (несколько аккаунтов CDEK одновременно)
+- ✅ **High-level Service API** для упрощенной работы с CDEK
+- ✅ **Circuit Breaker** защита от каскадных сбоев
+- ✅ **Thread-safe** реализация
+- ✅ Автогенерированный клиент из **OpenAPI 3.0** спецификации (40+ endpoints)
+- ✅ Покрытие тестами **69%+**
 
 ## Установка
 
@@ -53,8 +53,8 @@ func main() {
     // Получение клиента
     client, _ := manager.GetDefaultClient()
 
-    // Создание высокоуровневого сервиса
-    service := cdek.NewService(client)
+    // Создание высокоуровневого сервиса (с Circuit Breaker защитой)
+    service := cdek.NewService(client, nil)
     ctx := context.Background()
 
     // Проверка доступности API
@@ -62,7 +62,24 @@ func main() {
         log.Fatal("CDEK API недоступен:", err)
     }
 
-    fmt.Println("✅ Подключение к CDEK API успешно!")
+    // Расчет стоимости доставки Москва → Санкт-Петербург
+    cost, err := service.CalculateCost(ctx, &cdek.CostRequest{
+        FromCityCode: 44,  // Москва
+        ToCityCode:   137, // Санкт-Петербург
+        Packages: []cdek.Package{
+            {Weight: 1000, Length: 20, Width: 15, Height: 10}, // 1 кг
+        },
+    })
+    if err != nil {
+        log.Fatal("Ошибка расчета:", err)
+    }
+
+    // Вывод тарифов
+    for _, tariff := range cost.Tariffs {
+        fmt.Printf("%s: %.2f руб, %d-%d дней\n",
+            tariff.TariffName, tariff.DeliverySum,
+            tariff.PeriodMin, tariff.PeriodMax)
+    }
 }
 \`\`\`
 
@@ -71,14 +88,26 @@ func main() {
 \`\`\`
 User Code
   ↓
-Service (high-level API)
+Service (high-level API + Circuit Breaker + Logging)
   ↓
-AuthenticatedClient (OAuth2 + кеширование)
-  ↓
-Client (автогенерированный из OpenAPI)
+  ├─ costCalculator (валидация)
+  ├─ dtoMapper (преобразование типов)
+  └─ AuthenticatedClient (OAuth2 + token caching)
+      ↓
+Client (автогенерированный из OpenAPI 3.0)
   ↓
 CDEK API v2
 \`\`\`
+
+### Production-Ready Features
+
+- **Circuit Breaker** (sony/gobreaker): защита от каскадных сбоев
+  - Автоматическое открытие circuit при >= 60% ошибок
+  - Half-open state с ограничением запросов
+  - Timeout 60 секунд для восстановления
+- **Structured Logging** (zerolog): опциональное логирование всех операций
+- **Thread-Safe**: безопасная работа в многопоточной среде
+- **Typed Errors**: удобная обработка ошибок API
 
 ## Лицензия
 

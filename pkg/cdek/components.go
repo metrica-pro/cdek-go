@@ -199,13 +199,29 @@ func newCostCalculator(client *AuthenticatedClient) *costCalculator {
 	}
 }
 
-// calculate рассчитывает стоимость доставки (generic wrapper)
-//
-//nolint:unused // Будет использовано в service layer
-func (cc *costCalculator) calculate(ctx context.Context, req interface{}) (interface{}, error) {
+// validate проверяет корректность CostRequest
+func (cc *costCalculator) validate(req *CostRequest) error {
 	if req == nil {
-		return nil, fmt.Errorf("request: %w", ErrInvalidRequest)
+		return fmt.Errorf("request is nil: %w", ErrInvalidRequest)
 	}
-	// Конкретная реализация будет в service layer после регенерации client.go
-	return nil, fmt.Errorf("not implemented: use service layer methods")
+
+	if req.FromCityCode <= 0 {
+		return fmt.Errorf("from_city_code must be positive: %w", ErrInvalidRequest)
+	}
+
+	if req.ToCityCode <= 0 {
+		return fmt.Errorf("to_city_code must be positive: %w", ErrInvalidRequest)
+	}
+
+	if len(req.Packages) == 0 {
+		return fmt.Errorf("packages cannot be empty: %w", ErrInvalidRequest)
+	}
+
+	for i, pkg := range req.Packages {
+		if pkg.Weight <= 0 {
+			return fmt.Errorf("packages[%d].weight must be positive: %w", i, ErrInvalidRequest)
+		}
+	}
+
+	return nil
 }
