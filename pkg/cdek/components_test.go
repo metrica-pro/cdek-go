@@ -187,14 +187,70 @@ func TestOrderValidator(t *testing.T) {
 	t.Run("validate nil", func(t *testing.T) {
 		err := validator.validate(nil)
 		if err == nil {
-			t.Error("Expected error for nil data")
+			t.Error("Expected error for nil request")
 		}
 	})
 
-	t.Run("validate non-nil", func(t *testing.T) {
-		err := validator.validate(map[string]string{"test": "data"})
+	t.Run("validate valid request", func(t *testing.T) {
+		req := &OrderRequest{
+			Type:       "1",
+			TariffCode: 136,
+			Recipient: Recipient{
+				Contact: Contact{
+					Name:   "Test Recipient",
+					Phones: []Phone{{Number: "+79001234567"}},
+				},
+			},
+			Packages: []OrderPackage{
+				{
+					Number: "1",
+					Weight: 1000,
+					Items: []Item{
+						{Name: "Test Item", WareKey: "SKU123", Amount: 1},
+					},
+				},
+			},
+		}
+		err := validator.validate(req)
 		if err != nil {
-			t.Errorf("validate() error = %v", err)
+			t.Errorf("Expected no error for valid request, got: %v", err)
+		}
+	})
+
+	t.Run("validate missing recipient name", func(t *testing.T) {
+		req := &OrderRequest{
+			Type:       "1",
+			TariffCode: 136,
+			Recipient: Recipient{
+				Contact: Contact{
+					Phones: []Phone{{Number: "+79001234567"}},
+				},
+			},
+			Packages: []OrderPackage{
+				{Number: "1", Weight: 1000, Items: []Item{{Name: "Test", WareKey: "SKU", Amount: 1}}},
+			},
+		}
+		err := validator.validate(req)
+		if err == nil {
+			t.Error("Expected error for missing recipient name")
+		}
+	})
+
+	t.Run("validate empty packages", func(t *testing.T) {
+		req := &OrderRequest{
+			Type:       "1",
+			TariffCode: 136,
+			Recipient: Recipient{
+				Contact: Contact{
+					Name:   "Test",
+					Phones: []Phone{{Number: "+79001234567"}},
+				},
+			},
+			Packages: []OrderPackage{},
+		}
+		err := validator.validate(req)
+		if err == nil {
+			t.Error("Expected error for empty packages")
 		}
 	})
 }

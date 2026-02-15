@@ -172,3 +172,207 @@ func (s *Service) CalculateCost(ctx context.Context, req *CostRequest) (*CostRes
 
 	return costResp, nil
 }
+
+// CreateOrder создает заказ на доставку в CDEK
+func (s *Service) CreateOrder(ctx context.Context, req *OrderRequest) (*OrderResponse, error) {
+	s.logger.Info().
+		Str("type", req.Type).
+		Int("tariff_code", req.TariffCode).
+		Int("packages", len(req.Packages)).
+		Msg("creating order")
+
+	// Выполнение через Circuit Breaker
+	result, err := s.breaker.Execute(func() (interface{}, error) {
+		// Валидация заказа
+		if err := s.orderValidator.validate(req); err != nil {
+			return nil, fmt.Errorf("validation: %w", err)
+		}
+
+		// Преобразование Service Request → CDEK map
+		orderMap, err := s.mapper.toCDEKOrderRequest(req)
+		if err != nil {
+			return nil, fmt.Errorf("map request: %w", err)
+		}
+
+		// Получение токена авторизации
+		token, err := s.client.GetToken(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("get token: %w", err)
+		}
+
+		// Маршалинг в JSON
+		requestBody, err := json.Marshal(orderMap)
+		if err != nil {
+			return nil, fmt.Errorf("marshal request: %w", err)
+		}
+
+		// Вызов API
+		resp, err := s.client.ClientWithResponses().CreateOrderWithBody(
+			ctx,
+			nil, // query params
+			"application/json",
+			bytes.NewReader(requestBody),
+			func(ctx context.Context, r *http.Request) error {
+				r.Header.Set("Authorization", "Bearer "+token)
+				return nil
+			},
+		)
+		if err != nil {
+			return nil, fmt.Errorf("api call: %w", err)
+		}
+
+		// Проверка HTTP статуса
+		if resp.StatusCode >= 400 {
+			return nil, wrapHTTPError(resp)
+		}
+
+		// Чтение тела ответа
+		bodyBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, fmt.Errorf("read response: %w", err)
+		}
+		defer func() {
+			_ = resp.Body.Close()
+		}()
+
+		// Преобразование CDEK Response → Service Response
+		return s.mapper.fromCDEKOrderResponse(bodyBytes)
+	})
+
+	if err != nil {
+		s.logger.Error().Err(err).Msg("create order failed")
+		return nil, err
+	}
+
+	orderResp := result.(*OrderResponse)
+	s.logger.Info().
+		Str("uuid", orderResp.UUID).
+		Msg("create order success")
+
+	return orderResp, nil
+}
+
+// TrackOrder получает информацию об отслеживании заказа
+func (s *Service) TrackOrder(ctx context.Context, orderUUID string) (*TrackingInfo, error) {
+	s.logger.Info().
+		Str("uuid", orderUUID).
+		Msg("tracking order")
+
+	// Выполнение через Circuit Breaker
+	result, err := s.breaker.Execute(func() (interface{}, error) {
+		// Получение токена
+		token, err := s.client.GetToken(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("get token: %w", err)
+		}
+
+		// Вызов API
+		resp, err := s.client.ClientWithResponses().GetOrder(
+			ctx,
+			orderUUID,
+			func(ctx context.Context, r *http.Request) error {
+				r.Header.Set("Authorization", "Bearer "+token)
+				return nil
+			},
+		)
+		if err != nil {
+			return nil, fmt.Errorf("api call: %w", err)
+		}
+
+		// Проверка HTTP статуса
+		if resp.StatusCode >= 400 {
+			return nil, wrapHTTPError(resp)
+		}
+
+		// Чтение ответа
+		bodyBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, fmt.Errorf("read response: %w", err)
+		}
+		defer func() {
+			_ = resp.Body.Close()
+		}()
+
+		// Преобразование в TrackingInfo
+		return s.mapper.fromCDEKOrderToTracking(bodyBytes)
+	})
+
+	if err != nil {
+		s.logger.Error().Err(err).Str("uuid", orderUUID).Msg("track order failed")
+		return nil, err
+	}
+
+	trackingInfo := result.(*TrackingInfo)
+	s.logger.Info().
+		Str("uuid", trackingInfo.UUID).
+		Str("current_status", trackingInfo.CurrentStatus.Name).
+		Msg("track order success")
+
+	return trackingInfo, nil
+}
+
+// ListDeliveryPoints возвращает список пунктов выдачи заказов
+func (s *Service) ListDeliveryPoints(ctx context.Context, req *DeliveryPointsRequest) ([]DeliveryPoint, error) {
+	s.logger.Info().
+		Str("city_code", req.CityCode).
+		Str("type", req.Type).
+		Msg("listing delivery points")
+
+	// Выполнение через Circuit Breaker
+	result, err := s.breaker.Execute(func() (interface{}, error) {
+		// Получение токена
+		token, err := s.client.GetToken(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("get token: %w", err)
+		}
+
+		// Параметры запроса
+		cityCode := req.CityCode
+		pvzType := req.Type
+
+		// Вызов API
+		resp, err := s.client.ClientWithResponses().GetDeliverypoints(
+			ctx,
+			&GetDeliverypointsParams{
+				CityCode: &cityCode,
+				Type:     &pvzType,
+			},
+			func(ctx context.Context, r *http.Request) error {
+				r.Header.Set("Authorization", "Bearer "+token)
+				return nil
+			},
+		)
+		if err != nil {
+			return nil, fmt.Errorf("api call: %w", err)
+		}
+
+		// Проверка HTTP статуса
+		if resp.StatusCode >= 400 {
+			return nil, wrapHTTPError(resp)
+		}
+
+		// Чтение ответа
+		bodyBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, fmt.Errorf("read response: %w", err)
+		}
+		defer func() {
+			_ = resp.Body.Close()
+		}()
+
+		// Преобразование в []DeliveryPoint
+		return s.mapper.fromCDEKDeliveryPoints(bodyBytes)
+	})
+
+	if err != nil {
+		s.logger.Error().Err(err).Msg("list delivery points failed")
+		return nil, err
+	}
+
+	points := result.([]DeliveryPoint)
+	s.logger.Info().
+		Int("points_count", len(points)).
+		Msg("list delivery points success")
+
+	return points, nil
+}

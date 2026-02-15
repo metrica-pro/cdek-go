@@ -174,14 +174,59 @@ func newOrderValidator() *orderValidator {
 	return &orderValidator{}
 }
 
-// validate проверяет корректность данных (generic validation)
-//
-//nolint:unused // Будет использовано в service layer
-func (ov *orderValidator) validate(data interface{}) error {
-	if data == nil {
-		return fmt.Errorf("data: %w", ErrInvalidRequest)
+// validate проверяет корректность OrderRequest
+func (ov *orderValidator) validate(req *OrderRequest) error {
+	if req == nil {
+		return fmt.Errorf("request is nil: %w", ErrInvalidRequest)
 	}
-	// Детальная валидация будет в service layer
+
+	// Проверка типа заказа
+	if req.Type == "" {
+		return fmt.Errorf("type cannot be empty: %w", ErrInvalidRequest)
+	}
+
+	// Проверка тарифа
+	if req.TariffCode <= 0 {
+		return fmt.Errorf("tariff_code must be positive: %w", ErrInvalidRequest)
+	}
+
+	// Проверка получателя (обязательный)
+	if req.Recipient.Name == "" {
+		return fmt.Errorf("recipient.name cannot be empty: %w", ErrInvalidRequest)
+	}
+	if len(req.Recipient.Phones) == 0 {
+		return fmt.Errorf("recipient.phones cannot be empty: %w", ErrInvalidRequest)
+	}
+
+	// Проверка упаковок
+	if len(req.Packages) == 0 {
+		return fmt.Errorf("packages cannot be empty: %w", ErrInvalidRequest)
+	}
+
+	for i, pkg := range req.Packages {
+		if pkg.Number == "" {
+			return fmt.Errorf("packages[%d].number cannot be empty: %w", i, ErrInvalidRequest)
+		}
+		if pkg.Weight <= 0 {
+			return fmt.Errorf("packages[%d].weight must be positive: %w", i, ErrInvalidRequest)
+		}
+		if len(pkg.Items) == 0 {
+			return fmt.Errorf("packages[%d].items cannot be empty: %w", i, ErrInvalidRequest)
+		}
+
+		for j, item := range pkg.Items {
+			if item.Name == "" {
+				return fmt.Errorf("packages[%d].items[%d].name cannot be empty: %w", i, j, ErrInvalidRequest)
+			}
+			if item.WareKey == "" {
+				return fmt.Errorf("packages[%d].items[%d].ware_key cannot be empty: %w", i, j, ErrInvalidRequest)
+			}
+			if item.Amount <= 0 {
+				return fmt.Errorf("packages[%d].items[%d].amount must be positive: %w", i, j, ErrInvalidRequest)
+			}
+		}
+	}
+
 	return nil
 }
 

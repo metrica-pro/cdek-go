@@ -80,7 +80,63 @@ func main() {
             tariff.TariffName, tariff.DeliverySum,
             tariff.PeriodMin, tariff.PeriodMax)
     }
+
+    // Создание заказа (пример)
+    order, err := service.CreateOrder(ctx, &cdek.OrderRequest{
+        Type:       "1", // интернет-магазин
+        TariffCode: cost.Tariffs[0].TariffCode,
+        Recipient: cdek.Recipient{
+            Contact: cdek.Contact{
+                Name:   "Иванов Иван Иванович",
+                Phones: []cdek.Phone{{Number: "+79001234567"}},
+            },
+        },
+        ToLocation: cdek.Location{
+            Code: &[]int32{137}[0], // СПб
+        },
+        Packages: []cdek.OrderPackage{
+            {
+                Number: "1",
+                Weight: 1000,
+                Items: []cdek.Item{
+                    {Name: "Товар", WareKey: "SKU123", Cost: 1000, Weight: 1000, Amount: 1},
+                },
+            },
+        },
+    })
+    if err != nil {
+        log.Fatal("Ошибка создания заказа:", err)
+    }
+
+    fmt.Printf("✅ Заказ создан: %s\n", order.UUID)
+
+    // Отслеживание заказа
+    tracking, _ := service.TrackOrder(ctx, order.UUID)
+    fmt.Printf("Статус: %s\n", tracking.CurrentStatus.Name)
+
+    // Список ПВЗ
+    points, _ := service.ListDeliveryPoints(ctx, &cdek.DeliveryPointsRequest{
+        CityCode: "137",
+        Type:     "PVZ",
+    })
+    fmt.Printf("Найдено %d пунктов выдачи\n", len(points))
 }
+\`\`\`
+
+### Все ключевые методы
+
+```go
+// 1. Расчет стоимости
+cost, err := service.CalculateCost(ctx, &cdek.CostRequest{...})
+
+// 2. Создание заказа
+order, err := service.CreateOrder(ctx, &cdek.OrderRequest{...})
+
+// 3. Отслеживание
+tracking, err := service.TrackOrder(ctx, orderUUID)
+
+// 4. Список ПВЗ
+points, err := service.ListDeliveryPoints(ctx, &cdek.DeliveryPointsRequest{...})
 \`\`\`
 
 ## Архитектура

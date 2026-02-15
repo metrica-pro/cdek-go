@@ -5,6 +5,62 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-02-15
+
+### Added
+- **High-level Service API** for simplified CDEK integration (4 key methods)
+  - `CalculateCost()` - delivery cost calculation with automatic tariff selection
+  - `CreateOrder()` - order creation with validation and type conversion
+  - `TrackOrder()` - order tracking with status history
+  - `ListDeliveryPoints()` - PVZ (pickup points) listing
+- **Service-level DTO types** for simplified API usage
+  - Cost: CostRequest, CostResponse, Package, TariffOption
+  - Orders: OrderRequest, OrderResponse, Contact, Recipient, Location, OrderPackage, Item
+  - Tracking: TrackingInfo, StatusEvent
+  - Delivery Points: DeliveryPointsRequest, DeliveryPoint, PointLocation, Phone
+- **DTO mapper** with map[string]interface{} support for generated types
+  - toCDEKCalculatorRequest / fromCDEKCalculatorResponse
+  - toCDEKOrderRequest / fromCDEKOrderResponse
+  - fromCDEKOrderToTracking
+  - fromCDEKDeliveryPoints
+- **Circuit Breaker** protection (sony/gobreaker v2)
+  - Automatic protection from cascading failures
+  - Configurable failure thresholds (60% failure ratio, 3 min requests)
+  - Half-open state recovery with request limiting
+  - 60 second timeout for circuit recovery
+- **Structured Logging** (zerolog) with optional configuration
+  - Request/response logging
+  - Error logging with context
+  - No-op logger by default (zero overhead)
+- **ServiceConfig** for flexible service configuration
+  - Circuit breaker settings customization
+  - Optional logger injection
+  - Default configuration with sensible defaults
+- **Enhanced validation** components
+  - costCalculator: city codes (positive), packages (non-empty, positive weight)
+  - orderValidator: type, tariff code, recipient (name, phones), packages (number, weight, items)
+  - Detailed error messages with field paths
+- Integration test for high-level CalculateCost API
+- Unit tests for orderValidator (4 scenarios) and costCalculator (4 scenarios)
+
+### Changed
+- **BREAKING**: `NewService()` signature changed
+  - Before: `NewService(client *AuthenticatedClient)`
+  - After: `NewService(client *AuthenticatedClient, config *ServiceConfig)`
+  - Pass `nil` for default configuration
+- Service structure enhanced with Circuit Breaker and logger fields
+- Updated README with CalculateCost usage example
+- Updated architecture diagram with Circuit Breaker and components
+
+### Dependencies
+- Added `github.com/sony/gobreaker/v2 v2.4.0`
+- Added `github.com/rs/zerolog v1.34.0`
+
+### Documentation
+- Production-Ready Features section in README
+- Circuit Breaker configuration documentation
+- High-level API usage examples
+
 ## [0.1.0] - 2026-02-15
 
 ### Added
@@ -38,4 +94,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Architecture documentation
 - Testing guidelines (unit + integration)
 
+[0.2.0]: https://github.com/metrica-pro/cdek-go/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/metrica-pro/cdek-go/releases/tag/v0.1.0
