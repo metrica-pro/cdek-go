@@ -10,7 +10,7 @@
 
 ---
 
-## v0.2.0 (Текущая версия)
+## v0.2.1 (Текущая версия)
 
 ### ✅ Расчёт тарифов и справочники
 
@@ -299,7 +299,37 @@
 
 ## История версий
 
-### v0.2.0 (2026-02-15) - Current
+### v0.2.1 (2026-02-15) - Current
+
+✅ **Добавлено:**
+- **Webhooks - полный CRUD** (завершение функционала)
+  - `GetWebhook()` - получение webhook по UUID
+  - `DeleteWebhook()` - удаление webhook по UUID
+  - Автоматическая очистка тестовых данных
+- **Тесты:**
+  - 6 webhook unit тестов (константы, DTO mapper, валидация)
+  - 6 webhook integration тестов (полный CRUD lifecycle, разные типы, edge cases)
+  - Итого: 22 интеграционных теста
+- **Документация:**
+  - ROADMAP.md - дорожная карта с статусом реализации
+  - docs/API_ENDPOINTS.md - полный справочник API (794 строки)
+  - docs/DEPLOYMENT.md - руководство по развертыванию (815 строк)
+  - docs/INTEGRATION_GUIDE.md - интеграция в ERP/CRM (1036 строк)
+
+🔧 **Исправлено:**
+- golangci-lint issues (убраны избыточные объявления типов)
+- Очистка тестовых данных в webhook integration тестах
+
+📝 **Изменено:**
+- Coverage: 18.7% (исключая автогенерированный client.go)
+- ROADMAP.md обновлен - Webhooks отмечены как завершенные
+
+🗑️ **Удалено:**
+- Дублирующая документация (FINAL_REPORT.md, PROJECT_STATUS.md, REORGANIZATION_COMPLETE.md)
+
+**Breaking Changes:** Нет
+
+### v0.2.0 (2026-02-15)
 
 ✅ **Добавлено:**
 - 16 Service API методов (high-level)
@@ -308,13 +338,10 @@
 - Поддержка Seller (третье лицо для ИМ)
 - Печать документов (накладные, штрих-коды)
 - Intakes (заявки на забор груза)
-- **Webhooks - полный CRUD** (CreateWebhook, GetWebhook, ListWebhooks, DeleteWebhook)
-  - 10 типов событий (ORDER_STATUS, PRINT_FORM, ORDER_MODIFIED и др.)
-  - Unit тесты (6 функций)
-  - Integration тесты (6 функций)
+- Webhooks базовый функционал (CreateWebhook, ListWebhooks)
 - Structured logging (zerolog)
-- 22 интеграционных теста (было 16)
-- Полная документация (README, API_ENDPOINTS, INTEGRATION_GUIDE, DEPLOYMENT)
+- 16 интеграционных тестов
+- Базовая документация (README, CHANGELOG)
 
 **Breaking Changes:**
 - Sender тип изменён с Contact на Recipient (теперь поддерживает TIN)

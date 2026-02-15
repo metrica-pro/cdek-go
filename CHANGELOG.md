@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] - 2026-02-15
+
+### Added
+- **Webhooks - Full CRUD** (completing webhook functionality)
+  - `GetWebhook()` - retrieve webhook by UUID
+  - `DeleteWebhook()` - delete webhook by UUID
+  - Webhook cleanup helper for integration tests
+- **6 webhook unit tests** - constants, DTO mapper, validation
+- **6 webhook integration tests** - full CRUD lifecycle, different types, edge cases
+- **Comprehensive documentation**
+  - `ROADMAP.md` - feature roadmap with completion status
+  - `docs/API_ENDPOINTS.md` - complete API reference (794 lines)
+  - `docs/DEPLOYMENT.md` - deployment guide (815 lines)
+  - `docs/INTEGRATION_GUIDE.md` - ERP/CRM integration guide (1036 lines)
+
+### Fixed
+- golangci-lint issues (removed redundant type declarations)
+- Webhook integration tests now properly clean up test data
+
+### Changed
+- ROADMAP.md updated - Webhooks marked as complete
+- Test coverage: 18.7% (excluding generated client.go)
+- Total integration tests: 22 (was 16)
+
+### Removed
+- Duplicate documentation files (FINAL_REPORT.md, PROJECT_STATUS.md, REORGANIZATION_COMPLETE.md)
+
 ## [0.2.0] - 2026-02-15
 
 ### Added
