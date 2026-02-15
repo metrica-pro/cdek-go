@@ -8,21 +8,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.0] - 2026-02-15
 
 ### Added
-- **High-level Service API** for simplified CDEK integration (4 key methods)
+- **High-level Service API** for simplified CDEK integration (18 methods)
+
+  **Week 1 (MVP) - Core delivery operations:**
   - `CalculateCost()` - delivery cost calculation with automatic tariff selection
   - `CreateOrder()` - order creation with validation and type conversion
   - `TrackOrder()` - order tracking with status history
   - `ListDeliveryPoints()` - PVZ (pickup points) listing
+  - `PrintBarcode()` - barcode label printing job creation
+  - `PrintWaybill()` - waybill printing job creation
+
+  **Week 2 (Extended) - Full order lifecycle:**
+  - `GetOrder()` - retrieve complete order information
+  - `UpdateOrder()` - update existing order details
+  - `CancelOrder()` - cancel order (if status allows)
+  - `DownloadBarcode()` - download barcode labels as PDF
+  - `DownloadWaybill()` - download waybill as PDF
+
+  **Week 3 (Full API) - Location & notification support:**
+  - `ListCities()` - search cities for delivery
+  - `ListRegions()` - list regions/oblasts
+  - `CreateIntake()` - create pickup request
+  - `GetIntake()` - retrieve intake information
+  - `DeleteIntake()` - cancel pickup request
+  - `CreateWebhook()` - register webhook for status notifications
+  - `ListWebhooks()` - list registered webhooks
 - **Service-level DTO types** for simplified API usage
   - Cost: CostRequest, CostResponse, Package, TariffOption
-  - Orders: OrderRequest, OrderResponse, Contact, Recipient, Location, OrderPackage, Item
+  - Orders: OrderRequest, OrderResponse, OrderInfo, UpdateOrderRequest, Contact, Recipient, Location, OrderPackage, Item
   - Tracking: TrackingInfo, StatusEvent
   - Delivery Points: DeliveryPointsRequest, DeliveryPoint, PointLocation, Phone
+  - Printing: PrintRequest, PrintResponse
+  - Locations: CitiesRequest, City, RegionsRequest, Region
+  - Intakes: IntakeRequest, IntakeResponse, IntakeInfo, IntakeOrder
+  - Webhooks: WebhookRequest, WebhookResponse, Webhook
 - **DTO mapper** with map[string]interface{} support for generated types
-  - toCDEKCalculatorRequest / fromCDEKCalculatorResponse
-  - toCDEKOrderRequest / fromCDEKOrderResponse
-  - fromCDEKOrderToTracking
-  - fromCDEKDeliveryPoints
+  - Calculator: toCDEKCalculatorRequest, fromCDEKCalculatorResponse
+  - Orders: toCDEKOrderRequest, fromCDEKOrderResponse, fromCDEKOrderToInfo, fromCDEKOrderToTracking, toCDEKUpdateOrderRequest
+  - Delivery Points: fromCDEKDeliveryPoints
+  - Locations: fromCDEKCities, fromCDEKRegions
+  - Intakes: toCDEKIntakeRequest, fromCDEKIntakeResponse, fromCDEKIntakeInfo
+  - Webhooks: fromCDEKWebhookResponse, fromCDEKWebhooks
+- **Company recipient support** with TIN (ИНН) field
+  - Recipient type extended to support legal entities
+  - TIN field for companies and individual entrepreneurs (10 or 12 characters)
+  - Passport fields for physical persons
+  - Reference implementation based on vseinstrumentiru/CDEK library
 - **Circuit Breaker** protection (sony/gobreaker v2)
   - Automatic protection from cascading failures
   - Configurable failure thresholds (60% failure ratio, 3 min requests)
@@ -40,8 +71,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - costCalculator: city codes (positive), packages (non-empty, positive weight)
   - orderValidator: type, tariff code, recipient (name, phones), packages (number, weight, items)
   - Detailed error messages with field paths
-- Integration test for high-level CalculateCost API
-- Unit tests for orderValidator (4 scenarios) and costCalculator (4 scenarios)
+- **Comprehensive integration tests** (16 tests, all passing)
+  - Week 1: CalculateCost, CreateOrder, TrackOrder, ListDeliveryPoints, PrintBarcode, PrintWaybill
+  - Week 2: GetOrder, UpdateOrder, CancelOrder, DownloadBarcode, DownloadWaybill
+  - Week 3: ListCities, ListRegions, CreateIntake, ListWebhooks, CreateWebhook
+  - Full order CRUD lifecycle tested against CDEK Sandbox
+- **Unit tests** for validation components
+  - orderValidator: 4 scenarios (nil, valid, missing fields, empty packages)
+  - costCalculator: 4 scenarios (nil, valid, empty packages, zero weight)
+- **Coverage: 70.2% domain code** (excluding generated client.go)
+  - config.go: 100%, manager.go: 97.0%, components.go: 93.5%
+  - errors.go: 92.2%, auth.go: 89.7%
+  - service.go: 70.4%, dto_mapper.go: 65.1%
 
 ### Changed
 - **BREAKING**: `NewService()` signature changed

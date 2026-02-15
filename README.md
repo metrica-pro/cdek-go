@@ -8,13 +8,21 @@
 
 ## Возможности
 
-- ✅ **OAuth2** авторизация с автоматическим обновлением токенов
+- ✅ **18 High-level Service методов** для упрощенной работы с CDEK:
+  - Расчет стоимости, создание и управление заказами (CRUD)
+  - Печать документов (штрих-коды, накладные)
+  - Отслеживание статусов доставки
+  - Справочники (города, регионы, ПВЗ)
+  - Заявки на забор груза (intakes)
+  - Webhooks для автоматических уведомлений
+- ✅ **OAuth2** авторизация с автоматическим обновлением и кешированием токенов
 - ✅ **Мультиаккаунт** поддержка (несколько аккаунтов CDEK одновременно)
-- ✅ **High-level Service API** для упрощенной работы с CDEK
-- ✅ **Circuit Breaker** защита от каскадных сбоев
-- ✅ **Thread-safe** реализация
+- ✅ **Circuit Breaker** (sony/gobreaker) защита от каскадных сбоев
+- ✅ **Structured Logging** (zerolog) для мониторинга и отладки
+- ✅ **Thread-safe** реализация для многопоточных приложений
+- ✅ **Поддержка юрлиц** - получатели с ИНН (companies) и физлица (individuals)
 - ✅ Автогенерированный клиент из **OpenAPI 3.0** спецификации (40+ endpoints)
-- ✅ Покрытие тестами **69%+**
+- ✅ **70.2% test coverage** domain кода + 16 интеграционных тестов
 
 ## Установка
 
@@ -123,20 +131,156 @@ func main() {
 }
 \`\`\`
 
-### Все ключевые методы
+### Все методы Service API (18 методов)
+
+#### Расчет стоимости и создание заказов
 
 ```go
-// 1. Расчет стоимости
-cost, err := service.CalculateCost(ctx, &cdek.CostRequest{...})
+// Расчет стоимости доставки
+cost, err := service.CalculateCost(ctx, &cdek.CostRequest{
+    FromCityCode: 44,   // Москва
+    ToCityCode:   137,  // Санкт-Петербург
+    Packages:     []cdek.Package{{Weight: 1000, Length: 20, Width: 15, Height: 10}},
+})
 
-// 2. Создание заказа
-order, err := service.CreateOrder(ctx, &cdek.OrderRequest{...})
+// Создание заказа (физическое лицо)
+order, err := service.CreateOrder(ctx, &cdek.OrderRequest{
+    TariffCode: 136,
+    Recipient: cdek.Recipient{
+        Contact: cdek.Contact{
+            Name:   "Иван Иванов",
+            Phones: []cdek.Phone{{Number: "+79001234567"}},
+        },
+        PassportSeries: ptrString("1234"),
+        PassportNumber: ptrString("567890"),
+    },
+    // ... остальные поля
+})
 
-// 3. Отслеживание
+// Создание заказа (юридическое лицо с ИНН)
+order, err := service.CreateOrder(ctx, &cdek.OrderRequest{
+    TariffCode: 136,
+    Recipient: cdek.Recipient{
+        Contact: cdek.Contact{
+            Company: ptrString("ООО Компания"),
+            Name:    "Петр Петров", // Контактное лицо
+            Phones:  []cdek.Phone{{Number: "+79007654321"}},
+        },
+        TIN: ptrString("7707083893"), // ИНН (10 цифр для юрлиц, 12 для ИП)
+    },
+    // ... остальные поля
+})
+```
+
+#### Управление заказами (CRUD)
+
+```go
+// Получение информации о заказе
+orderInfo, err := service.GetOrder(ctx, orderUUID)
+
+// Обновление заказа
+updated, err := service.UpdateOrder(ctx, orderUUID, &cdek.UpdateOrderRequest{
+    Recipient: &cdek.Recipient{...}, // Новые данные получателя
+})
+
+// Отмена заказа
+err = service.CancelOrder(ctx, orderUUID)
+
+// Отслеживание заказа
 tracking, err := service.TrackOrder(ctx, orderUUID)
+fmt.Printf("Статус: %s\n", tracking.CurrentStatus.Name)
+fmt.Printf("История: %d событий\n", len(tracking.StatusHistory))
+```
 
-// 4. Список ПВЗ
-points, err := service.ListDeliveryPoints(ctx, &cdek.DeliveryPointsRequest{...})
+#### Печать документов
+
+```go
+// Создание задания на печать штрих-кодов
+printJob, err := service.PrintBarcode(ctx, &cdek.PrintRequest{
+    Orders: []cdek.PrintOrder{{OrderUUID: orderUUID}},
+    Format: cdek.FormatA4,
+})
+
+// Скачивание PDF штрих-кодов (когда готово)
+pdfData, err := service.DownloadBarcode(ctx, printJob.UUID)
+ioutil.WriteFile("barcodes.pdf", pdfData, 0644)
+
+// Создание задания на печать накладных
+waybillJob, err := service.PrintWaybill(ctx, &cdek.PrintRequest{
+    Orders: []cdek.PrintOrder{{OrderUUID: orderUUID}},
+})
+
+// Скачивание PDF накладных
+pdfData, err := service.DownloadWaybill(ctx, waybillJob.UUID)
+ioutil.WriteFile("waybill.pdf", pdfData, 0644)
+```
+
+#### Справочники и ПВЗ
+
+```go
+// Поиск городов
+cities, err := service.ListCities(ctx, &cdek.CitiesRequest{
+    City: ptrString("Москва"),
+    Size: ptrInt32(10),
+})
+
+// Список регионов
+regions, err := service.ListRegions(ctx, &cdek.RegionsRequest{
+    CountryCodes: []string{"RU"},
+    Size:         ptrInt32(50),
+})
+
+// Список пунктов выдачи
+points, err := service.ListDeliveryPoints(ctx, &cdek.DeliveryPointsRequest{
+    CityCode: "137",
+    Type:     "PVZ",
+})
+for _, p := range points {
+    fmt.Printf("%s: %s\n", p.Code, p.Location.Address)
+}
+```
+
+#### Заявки на забор груза (Intakes)
+
+```go
+// Создание заявки на забор
+intake, err := service.CreateIntake(ctx, &cdek.IntakeRequest{
+    IntakeDate:   "2026-02-20",
+    IntakeTimeFrom: "10:00",
+    IntakeTimeTo:   "18:00",
+    LunchTimeFrom:  ptrString("13:00"),
+    LunchTimeTo:    ptrString("14:00"),
+    Name:          "Иван Иванов",
+    Phone:         "+79001234567",
+})
+
+// Получение информации о заявке
+intakeInfo, err := service.GetIntake(ctx, intake.UUID)
+
+// Отмена заявки на забор
+err = service.DeleteIntake(ctx, intake.UUID)
+```
+
+#### Webhooks для уведомлений
+
+```go
+// Регистрация webhook
+webhook, err := service.CreateWebhook(ctx, &cdek.WebhookRequest{
+    URL:  "https://example.com/webhook/cdek",
+    Type: "ORDER_STATUS",
+})
+
+// Список зарегистрированных webhooks
+webhooks, err := service.ListWebhooks(ctx)
+for _, wh := range webhooks {
+    fmt.Printf("Webhook: %s (active: %t)\n", wh.URL, wh.Active)
+}
+```
+
+**Вспомогательная функция:**
+```go
+func ptrString(s string) *string { return &s }
+func ptrInt32(i int32) *int32 { return &i }
 \`\`\`
 
 ## Архитектура
