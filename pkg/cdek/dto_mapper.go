@@ -117,7 +117,7 @@ func (m *dtoMapper) toCDEKOrderRequest(req *OrderRequest) (map[string]interface{
 		order["comment"] = *req.Comment
 	}
 
-	// Отправитель
+	// Отправитель (теперь с поддержкой ИНН и паспортных данных)
 	if req.Sender.Name != "" {
 		sender := map[string]interface{}{
 			"name": req.Sender.Name,
@@ -138,6 +138,26 @@ func (m *dtoMapper) toCDEKOrderRequest(req *OrderRequest) (map[string]interface{
 				phones[i] = p
 			}
 			sender["phones"] = phones
+		}
+		// ИНН для отправителя (компания или ИП)
+		if req.Sender.TIN != nil {
+			sender["tin"] = *req.Sender.TIN
+		}
+		// Паспортные данные для отправителя (физлицо)
+		if req.Sender.PassportSeries != nil {
+			sender["passport_series"] = *req.Sender.PassportSeries
+		}
+		if req.Sender.PassportNumber != nil {
+			sender["passport_number"] = *req.Sender.PassportNumber
+		}
+		if req.Sender.PassportDateOfIssue != nil {
+			sender["passport_date_of_issue"] = *req.Sender.PassportDateOfIssue
+		}
+		if req.Sender.PassportOrganization != nil {
+			sender["passport_organization"] = *req.Sender.PassportOrganization
+		}
+		if req.Sender.PassportDateOfBirth != nil {
+			sender["passport_date_of_birth"] = *req.Sender.PassportDateOfBirth
 		}
 		order["sender"] = sender
 	}
@@ -184,6 +204,27 @@ func (m *dtoMapper) toCDEKOrderRequest(req *OrderRequest) (map[string]interface{
 		recipient["passport_date_of_birth"] = *req.Recipient.PassportDateOfBirth
 	}
 	order["recipient"] = recipient
+
+	// Истинный продавец (третье лицо) - только для интернет-магазинов
+	if req.Seller != nil {
+		seller := make(map[string]interface{})
+		if req.Seller.Name != nil {
+			seller["name"] = *req.Seller.Name
+		}
+		if req.Seller.INN != nil {
+			seller["inn"] = *req.Seller.INN
+		}
+		if req.Seller.Phone != nil {
+			seller["phone"] = *req.Seller.Phone
+		}
+		if req.Seller.OwnershipForm != nil {
+			seller["ownership_form"] = *req.Seller.OwnershipForm
+		}
+		if req.Seller.Address != nil {
+			seller["address"] = *req.Seller.Address
+		}
+		order["seller"] = seller
+	}
 
 	// Адрес отправителя
 	if req.FromLocation.Code != nil || req.FromLocation.Address != nil {
@@ -688,10 +729,30 @@ func (m *dtoMapper) toCDEKUpdateOrderRequest(req *UpdateOrderRequest) (map[strin
 			}
 			recipient["phones"] = phones
 		}
+		// ИНН для получателя
+		if req.Recipient.TIN != nil {
+			recipient["tin"] = *req.Recipient.TIN
+		}
+		// Паспортные данные для получателя
+		if req.Recipient.PassportSeries != nil {
+			recipient["passport_series"] = *req.Recipient.PassportSeries
+		}
+		if req.Recipient.PassportNumber != nil {
+			recipient["passport_number"] = *req.Recipient.PassportNumber
+		}
+		if req.Recipient.PassportDateOfIssue != nil {
+			recipient["passport_date_of_issue"] = *req.Recipient.PassportDateOfIssue
+		}
+		if req.Recipient.PassportOrganization != nil {
+			recipient["passport_organization"] = *req.Recipient.PassportOrganization
+		}
+		if req.Recipient.PassportDateOfBirth != nil {
+			recipient["passport_date_of_birth"] = *req.Recipient.PassportDateOfBirth
+		}
 		update["recipient"] = recipient
 	}
 
-	// Отправитель (если указан)
+	// Отправитель (если указан) - теперь с ИНН и паспортными данными
 	if req.Sender != nil {
 		sender := map[string]interface{}{
 			"name": req.Sender.Name,
@@ -713,7 +774,48 @@ func (m *dtoMapper) toCDEKUpdateOrderRequest(req *UpdateOrderRequest) (map[strin
 			}
 			sender["phones"] = phones
 		}
+		// ИНН для отправителя
+		if req.Sender.TIN != nil {
+			sender["tin"] = *req.Sender.TIN
+		}
+		// Паспортные данные для отправителя
+		if req.Sender.PassportSeries != nil {
+			sender["passport_series"] = *req.Sender.PassportSeries
+		}
+		if req.Sender.PassportNumber != nil {
+			sender["passport_number"] = *req.Sender.PassportNumber
+		}
+		if req.Sender.PassportDateOfIssue != nil {
+			sender["passport_date_of_issue"] = *req.Sender.PassportDateOfIssue
+		}
+		if req.Sender.PassportOrganization != nil {
+			sender["passport_organization"] = *req.Sender.PassportOrganization
+		}
+		if req.Sender.PassportDateOfBirth != nil {
+			sender["passport_date_of_birth"] = *req.Sender.PassportDateOfBirth
+		}
 		update["sender"] = sender
+	}
+
+	// Истинный продавец (третье лицо) - если указан
+	if req.Seller != nil {
+		seller := make(map[string]interface{})
+		if req.Seller.Name != nil {
+			seller["name"] = *req.Seller.Name
+		}
+		if req.Seller.INN != nil {
+			seller["inn"] = *req.Seller.INN
+		}
+		if req.Seller.Phone != nil {
+			seller["phone"] = *req.Seller.Phone
+		}
+		if req.Seller.OwnershipForm != nil {
+			seller["ownership_form"] = *req.Seller.OwnershipForm
+		}
+		if req.Seller.Address != nil {
+			seller["address"] = *req.Seller.Address
+		}
+		update["seller"] = seller
 	}
 
 	// Адрес получателя (если указан)

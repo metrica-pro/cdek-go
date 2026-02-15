@@ -43,13 +43,24 @@ type TariffOption struct {
 // Orders
 // ========================
 
+// Seller - истинный продавец (третье лицо)
+// Используется для интернет-магазинов, когда фактический продавец отличается от отправителя
+type Seller struct {
+	Name          *string // Наименование истинного продавца
+	INN           *string // ИНН истинного продавца (10 или 12 символов)
+	Phone         *string // Телефон истинного продавца
+	OwnershipForm *int    // Код формы собственности
+	Address       *string // Адрес истинного продавца
+}
+
 // OrderRequest - запрос на создание заказа
 type OrderRequest struct {
 	Type         string        // Тип заказа: "delivery" (доставка), "pickup" (самовывоз)
 	TariffCode   int           // Код тарифа
 	Comment      *string       // Комментарий к заказу
-	Sender       Contact       // Отправитель
-	Recipient    Recipient     // Получатель
+	Sender       Recipient     // Отправитель (может быть компания с ИНН или физлицо с паспортом)
+	Recipient    Recipient     // Получатель (может быть компания с ИНН или физлицо с паспортом)
+	Seller       *Seller       // Истинный продавец (третье лицо) - только для интернет-магазинов
 	FromLocation Location      // Адрес отправителя
 	ToLocation   Location      // Адрес получателя
 	Packages     []OrderPackage // Список мест
@@ -134,7 +145,8 @@ type StatusEvent struct {
 type UpdateOrderRequest struct {
 	OrderUUID    string         // UUID заказа для обновления
 	Recipient    *Recipient     // Новые данные получателя
-	Sender       *Contact       // Новые данные отправителя
+	Sender       *Recipient     // Новые данные отправителя (может быть компания с ИНН или физлицо)
+	Seller       *Seller        // Истинный продавец (третье лицо)
 	ToLocation   *Location      // Новый адрес доставки
 	FromLocation *Location      // Новый адрес отправления
 	Comment      *string        // Новый комментарий
