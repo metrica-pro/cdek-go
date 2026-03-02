@@ -18,6 +18,13 @@ var (
 
 // ErrorResponse структура ошибки от CDEK API
 type ErrorResponse struct {
+	Errors   []ErrorDetail  `json:"errors,omitempty"`
+	Requests []RequestState `json:"requests,omitempty"`
+}
+
+// RequestState is a CDEK v2 order response request entry.
+type RequestState struct {
+	State  string        `json:"state,omitempty"`
 	Errors []ErrorDetail `json:"errors,omitempty"`
 }
 
@@ -27,21 +34,32 @@ type ErrorDetail struct {
 	Message string `json:"message,omitempty"`
 }
 
+// allErrors returns top-level errors merged with nested request errors.
+func (e *ErrorResponse) allErrors() []ErrorDetail {
+	var all []ErrorDetail
+	all = append(all, e.Errors...)
+	for _, r := range e.Requests {
+		all = append(all, r.Errors...)
+	}
+	return all
+}
+
 // Error реализует интерфейс error
 func (e *ErrorResponse) Error() string {
-	if len(e.Errors) == 0 {
+	errs := e.allErrors()
+	if len(errs) == 0 {
 		return "cdek api error: unknown error"
 	}
 
-	if len(e.Errors) == 1 {
-		err := e.Errors[0]
+	if len(errs) == 1 {
+		err := errs[0]
 		if err.Code != "" {
 			return fmt.Sprintf("cdek api error [%s]: %s", err.Code, err.Message)
 		}
 		return fmt.Sprintf("cdek api error: %s", err.Message)
 	}
 
-	return fmt.Sprintf("cdek api error: %d errors occurred", len(e.Errors))
+	return fmt.Sprintf("cdek api error: %d errors occurred", len(errs))
 }
 
 // parseErrorResponse парсит HTTP ответ как ошибку
@@ -61,7 +79,7 @@ func parseErrorResponse(resp *http.Response) error {
 		return fmt.Errorf("http %d: %s", resp.StatusCode, string(body))
 	}
 
-	if len(errResp.Errors) == 0 {
+	if len(errResp.allErrors()) == 0 {
 		return fmt.Errorf("http %d: unknown error", resp.StatusCode)
 	}
 
