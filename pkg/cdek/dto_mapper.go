@@ -108,8 +108,15 @@ func (m *dtoMapper) fromCDEKCalculatorResponse(data []byte) (*CostResponse, erro
 func (m *dtoMapper) toCDEKOrderRequest(req *OrderRequest) (map[string]interface{}, error) {
 	order := make(map[string]interface{})
 
-	// Обязательные поля
-	order["type"] = req.Type
+	// Обязательные поля — CDEK v2 expects integer type: 1=online_store, 2=delivery
+	switch req.Type {
+	case "delivery", "2":
+		order["type"] = 2
+	case "online_store", "1":
+		order["type"] = 1
+	default:
+		order["type"] = 1
+	}
 	order["tariff_code"] = req.TariffCode
 
 	// Опциональный комментарий
