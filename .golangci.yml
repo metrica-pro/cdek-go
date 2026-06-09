@@ -20,16 +20,3 @@ linters:
 
 issues:
   max-same-issues: 5
-  exclusions:
-    rules:
-      # Generated file: oapi-codegen output
-      - path: "pkg/cdek/client\\.go"
-        linters:
-          - errcheck
-          - gosec
-          - revive
-          - unused
-      - path: "_test\\.go"
-        linters:
-          - errcheck
-          - gosec
