@@ -95,7 +95,7 @@ type Phone struct {
 // Location - местоположение (адрес)
 type Location struct {
 	Code       *int32  // Код населенного пункта СДЭК
-	FiasGuid   *string // Уникальный идентификатор ФИАС
+	FiasGUID   *string // Уникальный идентификатор ФИАС
 	PostalCode *string // Почтовый индекс
 	CountryCode *string // Код страны (ISO 3166-1 alpha-2)
 	Region     *string // Регион
@@ -259,7 +259,7 @@ type PrintResponse struct {
 type CitiesRequest struct {
 	CountryCode *string // Код страны (ISO 3166-1 alpha-2)
 	RegionCode  *int    // Код региона
-	FiasGuid    *string // ФИАС код
+	FiasGUID    *string // ФИАС код
 	PostalCode  *string // Почтовый индекс
 	Code        *int    // Код населенного пункта СДЭК
 	City        *string // Название города (поиск)
@@ -271,7 +271,7 @@ type CitiesRequest struct {
 type City struct {
 	Code          int     // Код населенного пункта СДЭК
 	City          string  // Название города
-	FiasGuid      *string // Уникальный идентификатор ФИАС
+	FiasGUID      *string // Уникальный идентификатор ФИАС
 	Region        string  // Регион
 	RegionCode    int     // Код региона
 	Country       string  // Страна
@@ -298,7 +298,7 @@ type Region struct {
 	Region      string  // Название региона
 	Country     string  // Страна
 	CountryCode string  // Код страны
-	FiasGuid    *string // ФИАС код региона
+	FiasGUID    *string // ФИАС код региона
 }
 
 // ========================
