@@ -7,6 +7,13 @@ cd "$(git rev-parse --show-toplevel)"
 
 echo "pre-push: CI gate..."
 
+# Detect go binary and GOPATH/bin (handles non-standard PATH in hook context)
+for gopath_candidate in "$(command -v go 2>/dev/null)" /usr/local/go/bin/go /usr/bin/go ~/go/bin/go; do
+    if [ -x "$gopath_candidate" ]; then
+        export PATH="$(dirname "$gopath_candidate"):$PATH"
+        break
+    fi
+done
 if command -v go >/dev/null 2>&1; then
     export PATH="$(go env GOPATH)/bin:$PATH"
 fi
