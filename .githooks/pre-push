@@ -1,0 +1,106 @@
+#!/usr/bin/env bash
+# pre-push — mirrors .github/workflows/ci.yml locally.
+# Skip with: git push --no-verify (only on explicit request).
+set -euo pipefail
+
+cd "$(git rev-parse --show-toplevel)"
+
+echo "pre-push: CI gate..."
+
+if command -v go >/dev/null 2>&1; then
+    export PATH="$(go env GOPATH)/bin:$PATH"
+fi
+
+MISSING=0
+for tool in go golangci-lint govulncheck oapi-codegen; do
+    if ! command -v "$tool" >/dev/null 2>&1; then
+        echo "  MISSING: $tool — run 'make tools-install'"
+        MISSING=1
+    fi
+done
+if [ "$MISSING" -ne 0 ]; then
+    echo "pre-push: BLOCKED"
+    exit 1
+fi
+
+FAIL=0
+run_step() {
+    local name="$1"; shift
+    echo "  → $name"
+    if ! "$@"; then
+        echo "  ✗ $name FAILED"
+        FAIL=1
+        return 1
+    fi
+    echo "  ✓ $name"
+}
+
+# 0) Go version consistency: go.mod ↔ ci.yml
+check_go_version_consistency() {
+    local gomod_ver mismatch=0
+    gomod_ver=$(grep -E '^go [0-9]+\.[0-9]+(\.[0-9]+)?' go.mod | head -1 | awk '{print $2}')
+    echo "    go.mod = $gomod_ver (source of truth)"
+    if [ -f .github/workflows/ci.yml ]; then
+        ci_ver=$(grep -E '^\s*GO_VERSION:' .github/workflows/ci.yml | head -1 | grep -oE '[0-9]+\.[0-9]+(\.[0-9]+)?')
+        echo "    ci.yml GO_VERSION = ${ci_ver:-<not found>}"
+        if [ "$ci_ver" != "$gomod_ver" ]; then
+            echo "      ✗ mismatch"
+            mismatch=1
+        fi
+    fi
+    if [ "$mismatch" -ne 0 ]; then
+        echo "  ✗ Go version consistency FAILED — sync ci.yml to go.mod $gomod_ver"
+        FAIL=1
+    else
+        echo "  ✓ Go version consistency (all = $gomod_ver)"
+    fi
+}
+check_go_version_consistency
+
+# 1) go fix
+go fix ./... >/dev/null 2>&1 || true
+
+# 2) go vet
+run_step "go vet" go vet ./... || true
+
+# 3) golangci-lint
+run_step "golangci-lint" golangci-lint run ./... || true
+
+# 4) tests (race)
+run_step "tests (race)" go test -race -count=1 ./... || true
+
+# 5) go build
+run_step "go build" go build ./... || true
+
+# 6) oapi-codegen drift
+if command -v oapi-codegen >/dev/null 2>&1 && [ -f oapi-codegen-config.yaml ]; then
+    run_step "oapi-codegen drift" sh -c '
+        SNAP=$(mktemp)
+        cp pkg/cdek/client.go "$SNAP"
+        oapi-codegen -config oapi-codegen-config.yaml cdek-api.yaml >/dev/null 2>&1
+        if ! cmp -s "$SNAP" pkg/cdek/client.go; then
+            cp "$SNAP" pkg/cdek/client.go
+            rm -f "$SNAP"
+            echo "    client.go has drift — regenerate and commit"
+            exit 1
+        fi
+        rm -f "$SNAP"
+    ' || true
+fi
+
+# 7) govulncheck
+echo "  → govulncheck"
+GV_OUT=$(govulncheck ./... 2>&1) || true
+if echo "$GV_OUT" | grep -qE "Vulnerability #|vulnerability in modules you require"; then
+    echo "$GV_OUT" | grep -E "GO-[0-9]|Module:|Found in|Fixed in" | sed 's/^/      /'
+    echo "  ✗ govulncheck FAILED"
+    FAIL=1
+else
+    echo "  ✓ govulncheck"
+fi
+
+if [ "$FAIL" -ne 0 ]; then
+    echo "pre-push: BLOCKED — fix failures above"
+    exit 1
+fi
+echo "pre-push: PASSED"
