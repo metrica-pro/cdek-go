@@ -8,6 +8,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/sony/gobreaker/v2"
@@ -587,6 +588,43 @@ func (s *Service) GetOrder(ctx context.Context, orderUUID string) (*OrderInfo, e
 	orderInfo := result.(*OrderInfo)
 	s.logger.Info("get order success", "uuid", orderInfo.UUID)
 
+	return orderInfo, nil
+}
+
+// GetOrderByCDEKNumber retrieves full order information by CDEK tracking number (e.g. "10278482691").
+// Uses Do() directly to avoid a nil-interface panic in the generated client when only one query param is set.
+func (s *Service) GetOrderByCDEKNumber(ctx context.Context, cdekNumber string) (*OrderInfo, error) {
+	s.logger.Info("getting order info by cdek number", "cdek_number", cdekNumber)
+
+	result, err := s.breaker.Execute(func() (interface{}, error) {
+		resp, err := s.client.Do(ctx, http.MethodGet,
+			"/v2/orders?cdek_number="+url.QueryEscape(cdekNumber), nil)
+		if err != nil {
+			return nil, fmt.Errorf("api call: %w", err)
+		}
+		defer func() { _ = resp.Body.Close() }()
+
+		bodyBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, fmt.Errorf("read response: %w", err)
+		}
+
+		if resp.StatusCode >= 400 {
+			return nil, wrapHTTPError(&http.Response{
+				StatusCode: resp.StatusCode,
+				Body:       io.NopCloser(bytes.NewReader(bodyBytes)),
+			})
+		}
+
+		return s.mapper.fromCDEKOrderToInfo(bodyBytes)
+	})
+	if err != nil {
+		s.logger.Error("get order by cdek number failed", "err", err, "cdek_number", cdekNumber)
+		return nil, err
+	}
+
+	orderInfo := result.(*OrderInfo)
+	s.logger.Info("get order by cdek number success", "cdek_number", cdekNumber, "uuid", orderInfo.UUID)
 	return orderInfo, nil
 }
 
