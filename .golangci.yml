@@ -12,9 +12,23 @@ linters:
     - ineffassign
     - unused
     - misspell
+    - gosec
+    - bodyclose
+    - noctx
+    - unconvert
+    - revive
 
 issues:
+  max-same-issues: 5
   exclude-rules:
+    # Generated file: oapi-codegen output
+    - path: "pkg/cdek/client\\.go"
+      linters:
+        - errcheck
+        - gosec
+        - revive
+        - unused
     - path: "_test\\.go"
       linters:
         - errcheck
+        - gosec

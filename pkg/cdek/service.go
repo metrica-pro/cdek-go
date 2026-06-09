@@ -6,10 +6,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"time"
 
-	"github.com/rs/zerolog"
 	"github.com/sony/gobreaker/v2"
 )
 
@@ -19,7 +19,7 @@ type ServiceConfig struct {
 	BreakerMaxRequests uint32        // 5 (half-open state)
 	BreakerInterval    time.Duration // 30s (reset interval)
 	BreakerTimeout     time.Duration // 60s (open → half-open timeout)
-	Logger             *zerolog.Logger
+	Logger             *slog.Logger
 }
 
 // DefaultServiceConfig возвращает конфигурацию по умолчанию
@@ -37,7 +37,7 @@ func DefaultServiceConfig() *ServiceConfig {
 type Service struct {
 	client  *AuthenticatedClient
 	breaker *gobreaker.CircuitBreaker[any]
-	logger  zerolog.Logger
+	logger  *slog.Logger
 
 	// Компоненты (camelCase по регламенту 4.6)
 	costCalculator *costCalculator
@@ -65,10 +65,10 @@ func NewService(client *AuthenticatedClient, config *ServiceConfig) *Service {
 		},
 	})
 
-	// Инициализация logger (no-op если не передан)
-	logger := zerolog.Nop()
+	// Инициализация logger (discard если не передан)
+	logger := slog.New(slog.DiscardHandler)
 	if config.Logger != nil {
-		logger = *config.Logger
+		logger = config.Logger
 	}
 
 	return &Service{
@@ -99,11 +99,7 @@ func (s *Service) HealthCheck(ctx context.Context) error {
 
 // CalculateCost рассчитывает стоимость доставки по указанному маршруту
 func (s *Service) CalculateCost(ctx context.Context, req *CostRequest) (*CostResponse, error) {
-	s.logger.Info().
-		Int32("from_city", req.FromCityCode).
-		Int32("to_city", req.ToCityCode).
-		Int("packages", len(req.Packages)).
-		Msg("calculating delivery cost")
+	s.logger.Info("calculating delivery cost", "from_city", req.FromCityCode, "to_city", req.ToCityCode, "packages", len(req.Packages))
 
 	// Выполнение через Circuit Breaker для защиты от каскадных сбоев
 	result, err := s.breaker.Execute(func() (interface{}, error) {
@@ -161,25 +157,19 @@ func (s *Service) CalculateCost(ctx context.Context, req *CostRequest) (*CostRes
 	})
 
 	if err != nil {
-		s.logger.Error().Err(err).Msg("calculate cost failed")
+		s.logger.Error("calculate cost failed", "err", err)
 		return nil, err
 	}
 
 	costResp := result.(*CostResponse)
-	s.logger.Info().
-		Int("tariffs_count", len(costResp.Tariffs)).
-		Msg("calculate cost success")
+	s.logger.Info("calculate cost success", "tariffs_count", len(costResp.Tariffs))
 
 	return costResp, nil
 }
 
 // CreateOrder создает заказ на доставку в CDEK
 func (s *Service) CreateOrder(ctx context.Context, req *OrderRequest) (*OrderResponse, error) {
-	s.logger.Info().
-		Str("type", req.Type).
-		Int("tariff_code", req.TariffCode).
-		Int("packages", len(req.Packages)).
-		Msg("creating order")
+	s.logger.Info("creating order", "type", req.Type, "tariff_code", req.TariffCode, "packages", len(req.Packages))
 
 	// Выполнение через Circuit Breaker
 	result, err := s.breaker.Execute(func() (interface{}, error) {
@@ -245,23 +235,19 @@ func (s *Service) CreateOrder(ctx context.Context, req *OrderRequest) (*OrderRes
 	})
 
 	if err != nil {
-		s.logger.Error().Err(err).Msg("create order failed")
+		s.logger.Error("create order failed", "err", err)
 		return nil, err
 	}
 
 	orderResp := result.(*OrderResponse)
-	s.logger.Info().
-		Str("uuid", orderResp.UUID).
-		Msg("create order success")
+	s.logger.Info("create order success", "uuid", orderResp.UUID)
 
 	return orderResp, nil
 }
 
 // TrackOrder получает информацию об отслеживании заказа
 func (s *Service) TrackOrder(ctx context.Context, orderUUID string) (*TrackingInfo, error) {
-	s.logger.Info().
-		Str("uuid", orderUUID).
-		Msg("tracking order")
+	s.logger.Info("tracking order", "uuid", orderUUID)
 
 	// Выполнение через Circuit Breaker
 	result, err := s.breaker.Execute(func() (interface{}, error) {
@@ -303,25 +289,19 @@ func (s *Service) TrackOrder(ctx context.Context, orderUUID string) (*TrackingIn
 	})
 
 	if err != nil {
-		s.logger.Error().Err(err).Str("uuid", orderUUID).Msg("track order failed")
+		s.logger.Error("track order failed", "err", err, "uuid", orderUUID)
 		return nil, err
 	}
 
 	trackingInfo := result.(*TrackingInfo)
-	s.logger.Info().
-		Str("uuid", trackingInfo.UUID).
-		Str("current_status", trackingInfo.CurrentStatus.Name).
-		Msg("track order success")
+	s.logger.Info("track order success", "uuid", trackingInfo.UUID, "current_status", trackingInfo.CurrentStatus.Name)
 
 	return trackingInfo, nil
 }
 
 // ListDeliveryPoints возвращает список пунктов выдачи заказов
 func (s *Service) ListDeliveryPoints(ctx context.Context, req *DeliveryPointsRequest) ([]DeliveryPoint, error) {
-	s.logger.Info().
-		Str("city_code", req.CityCode).
-		Str("type", req.Type).
-		Msg("listing delivery points")
+	s.logger.Info("listing delivery points", "city_code", req.CityCode, "type", req.Type)
 
 	// Выполнение через Circuit Breaker
 	result, err := s.breaker.Execute(func() (interface{}, error) {
@@ -366,23 +346,19 @@ func (s *Service) ListDeliveryPoints(ctx context.Context, req *DeliveryPointsReq
 	})
 
 	if err != nil {
-		s.logger.Error().Err(err).Msg("list delivery points failed")
+		s.logger.Error("list delivery points failed", "err", err)
 		return nil, err
 	}
 
 	points := result.([]DeliveryPoint)
-	s.logger.Info().
-		Int("points_count", len(points)).
-		Msg("list delivery points success")
+	s.logger.Info("list delivery points success", "points_count", len(points))
 
 	return points, nil
 }
 
 // PrintBarcode создает задание на печать этикеток (штрихкодов)
 func (s *Service) PrintBarcode(ctx context.Context, req *PrintBarcodeRequest) (*PrintResponse, error) {
-	s.logger.Info().
-		Int("orders_count", len(req.Orders)).
-		Msg("creating barcode print job")
+	s.logger.Info("creating barcode print job", "orders_count", len(req.Orders))
 
 	// Выполнение через Circuit Breaker
 	result, err := s.breaker.Execute(func() (interface{}, error) {
@@ -461,23 +437,19 @@ func (s *Service) PrintBarcode(ctx context.Context, req *PrintBarcodeRequest) (*
 	})
 
 	if err != nil {
-		s.logger.Error().Err(err).Msg("create barcode print job failed")
+		s.logger.Error("create barcode print job failed", "err", err)
 		return nil, err
 	}
 
 	printResp := result.(*PrintResponse)
-	s.logger.Info().
-		Str("uuid", printResp.UUID).
-		Msg("barcode print job created")
+	s.logger.Info("barcode print job created", "uuid", printResp.UUID)
 
 	return printResp, nil
 }
 
 // PrintWaybill создает задание на печать накладных
 func (s *Service) PrintWaybill(ctx context.Context, req *PrintWaybillRequest) (*PrintResponse, error) {
-	s.logger.Info().
-		Int("orders_count", len(req.Orders)).
-		Msg("creating waybill print job")
+	s.logger.Info("creating waybill print job", "orders_count", len(req.Orders))
 
 	// Выполнение через Circuit Breaker
 	result, err := s.breaker.Execute(func() (interface{}, error) {
@@ -556,23 +528,19 @@ func (s *Service) PrintWaybill(ctx context.Context, req *PrintWaybillRequest) (*
 	})
 
 	if err != nil {
-		s.logger.Error().Err(err).Msg("create waybill print job failed")
+		s.logger.Error("create waybill print job failed", "err", err)
 		return nil, err
 	}
 
 	printResp := result.(*PrintResponse)
-	s.logger.Info().
-		Str("uuid", printResp.UUID).
-		Msg("waybill print job created")
+	s.logger.Info("waybill print job created", "uuid", printResp.UUID)
 
 	return printResp, nil
 }
 
 // GetOrder получает полную информацию о заказе (включая все детали)
 func (s *Service) GetOrder(ctx context.Context, orderUUID string) (*OrderInfo, error) {
-	s.logger.Info().
-		Str("uuid", orderUUID).
-		Msg("getting order info")
+	s.logger.Info("getting order info", "uuid", orderUUID)
 
 	// Выполнение через Circuit Breaker
 	result, err := s.breaker.Execute(func() (interface{}, error) {
@@ -612,23 +580,19 @@ func (s *Service) GetOrder(ctx context.Context, orderUUID string) (*OrderInfo, e
 	})
 
 	if err != nil {
-		s.logger.Error().Err(err).Str("uuid", orderUUID).Msg("get order failed")
+		s.logger.Error("get order failed", "err", err, "uuid", orderUUID)
 		return nil, err
 	}
 
 	orderInfo := result.(*OrderInfo)
-	s.logger.Info().
-		Str("uuid", orderInfo.UUID).
-		Msg("get order success")
+	s.logger.Info("get order success", "uuid", orderInfo.UUID)
 
 	return orderInfo, nil
 }
 
 // UpdateOrder обновляет существующий заказ
 func (s *Service) UpdateOrder(ctx context.Context, req *UpdateOrderRequest) (*OrderResponse, error) {
-	s.logger.Info().
-		Str("uuid", req.OrderUUID).
-		Msg("updating order")
+	s.logger.Info("updating order", "uuid", req.OrderUUID)
 
 	// Выполнение через Circuit Breaker
 	result, err := s.breaker.Execute(func() (interface{}, error) {
@@ -682,23 +646,19 @@ func (s *Service) UpdateOrder(ctx context.Context, req *UpdateOrderRequest) (*Or
 	})
 
 	if err != nil {
-		s.logger.Error().Err(err).Str("uuid", req.OrderUUID).Msg("update order failed")
+		s.logger.Error("update order failed", "err", err, "uuid", req.OrderUUID)
 		return nil, err
 	}
 
 	orderResp := result.(*OrderResponse)
-	s.logger.Info().
-		Str("uuid", orderResp.UUID).
-		Msg("update order success")
+	s.logger.Info("update order success", "uuid", orderResp.UUID)
 
 	return orderResp, nil
 }
 
 // CancelOrder отменяет заказ
 func (s *Service) CancelOrder(ctx context.Context, orderUUID string) error {
-	s.logger.Info().
-		Str("uuid", orderUUID).
-		Msg("canceling order")
+	s.logger.Info("canceling order", "uuid", orderUUID)
 
 	// Выполнение через Circuit Breaker
 	_, err := s.breaker.Execute(func() (interface{}, error) {
@@ -737,22 +697,18 @@ func (s *Service) CancelOrder(ctx context.Context, orderUUID string) error {
 	})
 
 	if err != nil {
-		s.logger.Error().Err(err).Str("uuid", orderUUID).Msg("cancel order failed")
+		s.logger.Error("cancel order failed", "err", err, "uuid", orderUUID)
 		return err
 	}
 
-	s.logger.Info().
-		Str("uuid", orderUUID).
-		Msg("cancel order success")
+	s.logger.Info("cancel order success", "uuid", orderUUID)
 
 	return nil
 }
 
 // DownloadBarcode скачивает готовый PDF с этикетками
 func (s *Service) DownloadBarcode(ctx context.Context, printUUID string) ([]byte, error) {
-	s.logger.Info().
-		Str("print_uuid", printUUID).
-		Msg("downloading barcode PDF")
+	s.logger.Info("downloading barcode PDF", "print_uuid", printUUID)
 
 	// Выполнение через Circuit Breaker
 	result, err := s.breaker.Execute(func() (interface{}, error) {
@@ -791,24 +747,19 @@ func (s *Service) DownloadBarcode(ctx context.Context, printUUID string) ([]byte
 	})
 
 	if err != nil {
-		s.logger.Error().Err(err).Str("print_uuid", printUUID).Msg("download barcode failed")
+		s.logger.Error("download barcode failed", "err", err, "print_uuid", printUUID)
 		return nil, err
 	}
 
 	pdfBytes := result.([]byte)
-	s.logger.Info().
-		Str("print_uuid", printUUID).
-		Int("size_bytes", len(pdfBytes)).
-		Msg("download barcode success")
+	s.logger.Info("download barcode success", "print_uuid", printUUID, "size_bytes", len(pdfBytes))
 
 	return pdfBytes, nil
 }
 
 // DownloadWaybill скачивает готовый PDF с накладной
 func (s *Service) DownloadWaybill(ctx context.Context, printUUID string) ([]byte, error) {
-	s.logger.Info().
-		Str("print_uuid", printUUID).
-		Msg("downloading waybill PDF")
+	s.logger.Info("downloading waybill PDF", "print_uuid", printUUID)
 
 	// Выполнение через Circuit Breaker
 	result, err := s.breaker.Execute(func() (interface{}, error) {
@@ -847,15 +798,12 @@ func (s *Service) DownloadWaybill(ctx context.Context, printUUID string) ([]byte
 	})
 
 	if err != nil {
-		s.logger.Error().Err(err).Str("print_uuid", printUUID).Msg("download waybill failed")
+		s.logger.Error("download waybill failed", "err", err, "print_uuid", printUUID)
 		return nil, err
 	}
 
 	pdfBytes := result.([]byte)
-	s.logger.Info().
-		Str("print_uuid", printUUID).
-		Int("size_bytes", len(pdfBytes)).
-		Msg("download waybill success")
+	s.logger.Info("download waybill success", "print_uuid", printUUID, "size_bytes", len(pdfBytes))
 
 	return pdfBytes, nil
 }
@@ -866,7 +814,7 @@ func (s *Service) DownloadWaybill(ctx context.Context, printUUID string) ([]byte
 
 // ListCities возвращает список городов из справочника СДЭК
 func (s *Service) ListCities(ctx context.Context, req *CitiesRequest) ([]City, error) {
-	s.logger.Info().Msg("listing cities")
+	s.logger.Info("listing cities")
 
 	// Выполнение через Circuit Breaker
 	result, err := s.breaker.Execute(func() (interface{}, error) {
@@ -934,21 +882,19 @@ func (s *Service) ListCities(ctx context.Context, req *CitiesRequest) ([]City, e
 	})
 
 	if err != nil {
-		s.logger.Error().Err(err).Msg("list cities failed")
+		s.logger.Error("list cities failed", "err", err)
 		return nil, err
 	}
 
 	cities := result.([]City)
-	s.logger.Info().
-		Int("count", len(cities)).
-		Msg("list cities success")
+	s.logger.Info("list cities success", "count", len(cities))
 
 	return cities, nil
 }
 
 // ListRegions возвращает список регионов из справочника СДЭК
 func (s *Service) ListRegions(ctx context.Context, req *RegionsRequest) ([]Region, error) {
-	s.logger.Info().Msg("listing regions")
+	s.logger.Info("listing regions")
 
 	// Выполнение через Circuit Breaker
 	result, err := s.breaker.Execute(func() (interface{}, error) {
@@ -1002,14 +948,12 @@ func (s *Service) ListRegions(ctx context.Context, req *RegionsRequest) ([]Regio
 	})
 
 	if err != nil {
-		s.logger.Error().Err(err).Msg("list regions failed")
+		s.logger.Error("list regions failed", "err", err)
 		return nil, err
 	}
 
 	regions := result.([]Region)
-	s.logger.Info().
-		Int("count", len(regions)).
-		Msg("list regions success")
+	s.logger.Info("list regions success", "count", len(regions))
 
 	return regions, nil
 }
@@ -1020,9 +964,7 @@ func (s *Service) ListRegions(ctx context.Context, req *RegionsRequest) ([]Regio
 
 // CreateIntake создает заявку на забор груза
 func (s *Service) CreateIntake(ctx context.Context, req *IntakeRequest) (*IntakeResponse, error) {
-	s.logger.Info().
-		Str("intake_date", req.IntakeDate).
-		Msg("creating intake")
+	s.logger.Info("creating intake", "intake_date", req.IntakeDate)
 
 	// Выполнение через Circuit Breaker
 	result, err := s.breaker.Execute(func() (interface{}, error) {
@@ -1075,23 +1017,19 @@ func (s *Service) CreateIntake(ctx context.Context, req *IntakeRequest) (*Intake
 	})
 
 	if err != nil {
-		s.logger.Error().Err(err).Msg("create intake failed")
+		s.logger.Error("create intake failed", "err", err)
 		return nil, err
 	}
 
 	intakeResp := result.(*IntakeResponse)
-	s.logger.Info().
-		Str("uuid", intakeResp.UUID).
-		Msg("create intake success")
+	s.logger.Info("create intake success", "uuid", intakeResp.UUID)
 
 	return intakeResp, nil
 }
 
 // GetIntake получает информацию о заявке на забор
 func (s *Service) GetIntake(ctx context.Context, intakeUUID string) (*IntakeInfo, error) {
-	s.logger.Info().
-		Str("uuid", intakeUUID).
-		Msg("getting intake info")
+	s.logger.Info("getting intake info", "uuid", intakeUUID)
 
 	// Выполнение через Circuit Breaker
 	result, err := s.breaker.Execute(func() (interface{}, error) {
@@ -1131,23 +1069,19 @@ func (s *Service) GetIntake(ctx context.Context, intakeUUID string) (*IntakeInfo
 	})
 
 	if err != nil {
-		s.logger.Error().Err(err).Str("uuid", intakeUUID).Msg("get intake failed")
+		s.logger.Error("get intake failed", "err", err, "uuid", intakeUUID)
 		return nil, err
 	}
 
 	intakeInfo := result.(*IntakeInfo)
-	s.logger.Info().
-		Str("uuid", intakeInfo.UUID).
-		Msg("get intake success")
+	s.logger.Info("get intake success", "uuid", intakeInfo.UUID)
 
 	return intakeInfo, nil
 }
 
 // DeleteIntake отменяет заявку на забор
 func (s *Service) DeleteIntake(ctx context.Context, intakeUUID string) error {
-	s.logger.Info().
-		Str("uuid", intakeUUID).
-		Msg("deleting intake")
+	s.logger.Info("deleting intake", "uuid", intakeUUID)
 
 	// Выполнение через Circuit Breaker
 	_, err := s.breaker.Execute(func() (interface{}, error) {
@@ -1186,13 +1120,11 @@ func (s *Service) DeleteIntake(ctx context.Context, intakeUUID string) error {
 	})
 
 	if err != nil {
-		s.logger.Error().Err(err).Str("uuid", intakeUUID).Msg("delete intake failed")
+		s.logger.Error("delete intake failed", "err", err, "uuid", intakeUUID)
 		return err
 	}
 
-	s.logger.Info().
-		Str("uuid", intakeUUID).
-		Msg("delete intake success")
+	s.logger.Info("delete intake success", "uuid", intakeUUID)
 
 	return nil
 }
@@ -1203,10 +1135,7 @@ func (s *Service) DeleteIntake(ctx context.Context, intakeUUID string) error {
 
 // CreateWebhook регистрирует webhook для получения уведомлений
 func (s *Service) CreateWebhook(ctx context.Context, req *WebhookRequest) (*WebhookResponse, error) {
-	s.logger.Info().
-		Str("url", req.URL).
-		Str("type", req.Type).
-		Msg("creating webhook")
+	s.logger.Info("creating webhook", "url", req.URL, "type", req.Type)
 
 	// Выполнение через Circuit Breaker
 	result, err := s.breaker.Execute(func() (interface{}, error) {
@@ -1259,21 +1188,19 @@ func (s *Service) CreateWebhook(ctx context.Context, req *WebhookRequest) (*Webh
 	})
 
 	if err != nil {
-		s.logger.Error().Err(err).Msg("create webhook failed")
+		s.logger.Error("create webhook failed", "err", err)
 		return nil, err
 	}
 
 	webhookResp := result.(*WebhookResponse)
-	s.logger.Info().
-		Str("uuid", webhookResp.UUID).
-		Msg("create webhook success")
+	s.logger.Info("create webhook success", "uuid", webhookResp.UUID)
 
 	return webhookResp, nil
 }
 
 // ListWebhooks возвращает список зарегистрированных webhooks
 func (s *Service) ListWebhooks(ctx context.Context) ([]Webhook, error) {
-	s.logger.Info().Msg("listing webhooks")
+	s.logger.Info("listing webhooks")
 
 	// Выполнение через Circuit Breaker
 	result, err := s.breaker.Execute(func() (interface{}, error) {
@@ -1312,23 +1239,19 @@ func (s *Service) ListWebhooks(ctx context.Context) ([]Webhook, error) {
 	})
 
 	if err != nil {
-		s.logger.Error().Err(err).Msg("list webhooks failed")
+		s.logger.Error("list webhooks failed", "err", err)
 		return nil, err
 	}
 
 	webhooks := result.([]Webhook)
-	s.logger.Info().
-		Int("count", len(webhooks)).
-		Msg("list webhooks success")
+	s.logger.Info("list webhooks success", "count", len(webhooks))
 
 	return webhooks, nil
 }
 
 // GetWebhook получает информацию о конкретном webhook
 func (s *Service) GetWebhook(ctx context.Context, webhookUUID string) (*Webhook, error) {
-	s.logger.Info().
-		Str("uuid", webhookUUID).
-		Msg("getting webhook")
+	s.logger.Info("getting webhook", "uuid", webhookUUID)
 
 	// Выполнение через Circuit Breaker
 	result, err := s.breaker.Execute(func() (interface{}, error) {
@@ -1368,24 +1291,19 @@ func (s *Service) GetWebhook(ctx context.Context, webhookUUID string) (*Webhook,
 	})
 
 	if err != nil {
-		s.logger.Error().Err(err).Str("uuid", webhookUUID).Msg("get webhook failed")
+		s.logger.Error("get webhook failed", "err", err, "uuid", webhookUUID)
 		return nil, err
 	}
 
 	webhook := result.(*Webhook)
-	s.logger.Info().
-		Str("uuid", webhook.UUID).
-		Str("type", webhook.Type).
-		Msg("get webhook success")
+	s.logger.Info("get webhook success", "uuid", webhook.UUID, "type", webhook.Type)
 
 	return webhook, nil
 }
 
 // DeleteWebhook удаляет webhook
 func (s *Service) DeleteWebhook(ctx context.Context, webhookUUID string) error {
-	s.logger.Info().
-		Str("uuid", webhookUUID).
-		Msg("deleting webhook")
+	s.logger.Info("deleting webhook", "uuid", webhookUUID)
 
 	// Выполнение через Circuit Breaker
 	_, err := s.breaker.Execute(func() (interface{}, error) {
@@ -1424,13 +1342,11 @@ func (s *Service) DeleteWebhook(ctx context.Context, webhookUUID string) error {
 	})
 
 	if err != nil {
-		s.logger.Error().Err(err).Str("uuid", webhookUUID).Msg("delete webhook failed")
+		s.logger.Error("delete webhook failed", "err", err, "uuid", webhookUUID)
 		return err
 	}
 
-	s.logger.Info().
-		Str("uuid", webhookUUID).
-		Msg("delete webhook success")
+	s.logger.Info("delete webhook success", "uuid", webhookUUID)
 
 	return nil
 }
