@@ -129,7 +129,7 @@ func (s *Service) CalculateCost(ctx context.Context, req *CostRequest) (*CostRes
 			nil, // query params
 			"application/json",
 			bytes.NewReader(requestBody),
-			func(ctx context.Context, r *http.Request) error {
+			func(_ context.Context, r *http.Request) error {
 				r.Header.Set("Authorization", "Bearer "+token)
 				return nil
 			},
@@ -202,7 +202,7 @@ func (s *Service) CreateOrder(ctx context.Context, req *OrderRequest) (*OrderRes
 			nil, // query params
 			"application/json",
 			bytes.NewReader(requestBody),
-			func(ctx context.Context, r *http.Request) error {
+			func(_ context.Context, r *http.Request) error {
 				r.Header.Set("Authorization", "Bearer "+token)
 				return nil
 			},
@@ -261,7 +261,7 @@ func (s *Service) TrackOrder(ctx context.Context, orderUUID string) (*TrackingIn
 		resp, err := s.client.ClientWithResponses().GetOrder(
 			ctx,
 			orderUUID,
-			func(ctx context.Context, r *http.Request) error {
+			func(_ context.Context, r *http.Request) error {
 				r.Header.Set("Authorization", "Bearer "+token)
 				return nil
 			},
@@ -396,7 +396,7 @@ func (s *Service) PrintBarcode(ctx context.Context, req *PrintBarcodeRequest) (*
 			ctx,
 			"application/json",
 			bytes.NewReader(requestBody),
-			func(ctx context.Context, r *http.Request) error {
+			func(_ context.Context, r *http.Request) error {
 				r.Header.Set("Authorization", "Bearer "+token)
 				return nil
 			},
@@ -487,7 +487,7 @@ func (s *Service) PrintWaybill(ctx context.Context, req *PrintWaybillRequest) (*
 			ctx,
 			"application/json",
 			bytes.NewReader(requestBody),
-			func(ctx context.Context, r *http.Request) error {
+			func(_ context.Context, r *http.Request) error {
 				r.Header.Set("Authorization", "Bearer "+token)
 				return nil
 			},
@@ -554,7 +554,7 @@ func (s *Service) GetOrder(ctx context.Context, orderUUID string) (*OrderInfo, e
 		resp, err := s.client.ClientWithResponses().GetOrderWithResponse(
 			ctx,
 			orderUUID,
-			func(ctx context.Context, r *http.Request) error {
+			func(_ context.Context, r *http.Request) error {
 				r.Header.Set("Authorization", "Bearer "+token)
 				return nil
 			},
@@ -620,7 +620,7 @@ func (s *Service) UpdateOrder(ctx context.Context, req *UpdateOrderRequest) (*Or
 			nil, // params (только developer-key, опционально)
 			"application/json",
 			bytes.NewReader(requestBody),
-			func(ctx context.Context, r *http.Request) error {
+			func(_ context.Context, r *http.Request) error {
 				r.Header.Set("Authorization", "Bearer "+token)
 				return nil
 			},
@@ -672,7 +672,7 @@ func (s *Service) CancelOrder(ctx context.Context, orderUUID string) error {
 		resp, err := s.client.ClientWithResponses().DeleteWithResponse(
 			ctx,
 			orderUUID,
-			func(ctx context.Context, r *http.Request) error {
+			func(_ context.Context, r *http.Request) error {
 				r.Header.Set("Authorization", "Bearer "+token)
 				return nil
 			},
@@ -722,7 +722,7 @@ func (s *Service) DownloadBarcode(ctx context.Context, printUUID string) ([]byte
 		resp, err := s.client.ClientWithResponses().BarcodeDownloadWithResponse(
 			ctx,
 			printUUID,
-			func(ctx context.Context, r *http.Request) error {
+			func(_ context.Context, r *http.Request) error {
 				r.Header.Set("Authorization", "Bearer "+token)
 				return nil
 			},
@@ -773,7 +773,7 @@ func (s *Service) DownloadWaybill(ctx context.Context, printUUID string) ([]byte
 		resp, err := s.client.ClientWithResponses().WaybillDownloadWithResponse(
 			ctx,
 			printUUID,
-			func(ctx context.Context, r *http.Request) error {
+			func(_ context.Context, r *http.Request) error {
 				r.Header.Set("Authorization", "Bearer "+token)
 				return nil
 			},
@@ -830,25 +830,25 @@ func (s *Service) ListCities(ctx context.Context, req *CitiesRequest) ([]City, e
 			params.CountryCodes = req.CountryCode
 		}
 		if req.RegionCode != nil {
-			regionCode := int32(*req.RegionCode)
+			regionCode := int32(*req.RegionCode) //nolint:gosec
 			params.RegionCode = &regionCode
 		}
 		if req.PostalCode != nil {
 			params.PostalCode = req.PostalCode
 		}
 		if req.Code != nil {
-			code := int32(*req.Code)
+			code := int32(*req.Code) //nolint:gosec
 			params.Code = &code
 		}
 		if req.City != nil {
 			params.City = req.City
 		}
 		if req.Size != nil {
-			size := int32(*req.Size)
+			size := int32(*req.Size) //nolint:gosec
 			params.Size = &size
 		}
 		if req.Page != nil {
-			page := int32(*req.Page)
+			page := int32(*req.Page) //nolint:gosec
 			params.Page = &page
 		}
 
@@ -856,7 +856,7 @@ func (s *Service) ListCities(ctx context.Context, req *CitiesRequest) ([]City, e
 		resp, err := s.client.ClientWithResponses().CitiesWithResponse(
 			ctx,
 			params,
-			func(ctx context.Context, r *http.Request) error {
+			func(_ context.Context, r *http.Request) error {
 				r.Header.Set("Authorization", "Bearer "+token)
 				return nil
 			},
@@ -910,11 +910,11 @@ func (s *Service) ListRegions(ctx context.Context, req *RegionsRequest) ([]Regio
 			params.CountryCodes = req.CountryCode
 		}
 		if req.Size != nil {
-			size := int32(*req.Size)
+			size := int32(*req.Size) //nolint:gosec
 			params.Size = &size
 		}
 		if req.Page != nil {
-			page := int32(*req.Page)
+			page := int32(*req.Page) //nolint:gosec
 			params.Page = &page
 		}
 
@@ -922,7 +922,7 @@ func (s *Service) ListRegions(ctx context.Context, req *RegionsRequest) ([]Regio
 		resp, err := s.client.ClientWithResponses().RegionsWithResponse(
 			ctx,
 			params,
-			func(ctx context.Context, r *http.Request) error {
+			func(_ context.Context, r *http.Request) error {
 				r.Header.Set("Authorization", "Bearer "+token)
 				return nil
 			},
@@ -991,7 +991,7 @@ func (s *Service) CreateIntake(ctx context.Context, req *IntakeRequest) (*Intake
 			ctx,
 			"application/json",
 			bytes.NewReader(requestBody),
-			func(ctx context.Context, r *http.Request) error {
+			func(_ context.Context, r *http.Request) error {
 				r.Header.Set("Authorization", "Bearer "+token)
 				return nil
 			},
@@ -1043,7 +1043,7 @@ func (s *Service) GetIntake(ctx context.Context, intakeUUID string) (*IntakeInfo
 		resp, err := s.client.ClientWithResponses().GetByUuidWithResponse(
 			ctx,
 			intakeUUID,
-			func(ctx context.Context, r *http.Request) error {
+			func(_ context.Context, r *http.Request) error {
 				r.Header.Set("Authorization", "Bearer "+token)
 				return nil
 			},
@@ -1095,7 +1095,7 @@ func (s *Service) DeleteIntake(ctx context.Context, intakeUUID string) error {
 		resp, err := s.client.ClientWithResponses().DeleteByUuidWithResponse(
 			ctx,
 			intakeUUID,
-			func(ctx context.Context, r *http.Request) error {
+			func(_ context.Context, r *http.Request) error {
 				r.Header.Set("Authorization", "Bearer "+token)
 				return nil
 			},
@@ -1162,7 +1162,7 @@ func (s *Service) CreateWebhook(ctx context.Context, req *WebhookRequest) (*Webh
 			ctx,
 			"application/json",
 			bytes.NewReader(requestBody),
-			func(ctx context.Context, r *http.Request) error {
+			func(_ context.Context, r *http.Request) error {
 				r.Header.Set("Authorization", "Bearer "+token)
 				return nil
 			},
@@ -1213,7 +1213,7 @@ func (s *Service) ListWebhooks(ctx context.Context) ([]Webhook, error) {
 		// Вызов API
 		resp, err := s.client.ClientWithResponses().GetAllWithResponse(
 			ctx,
-			func(ctx context.Context, r *http.Request) error {
+			func(_ context.Context, r *http.Request) error {
 				r.Header.Set("Authorization", "Bearer "+token)
 				return nil
 			},
@@ -1265,7 +1265,7 @@ func (s *Service) GetWebhook(ctx context.Context, webhookUUID string) (*Webhook,
 		resp, err := s.client.ClientWithResponses().GetByIdWithResponse(
 			ctx,
 			webhookUUID,
-			func(ctx context.Context, r *http.Request) error {
+			func(_ context.Context, r *http.Request) error {
 				r.Header.Set("Authorization", "Bearer "+token)
 				return nil
 			},
@@ -1317,7 +1317,7 @@ func (s *Service) DeleteWebhook(ctx context.Context, webhookUUID string) error {
 		resp, err := s.client.ClientWithResponses().DeleteByIdWithResponse(
 			ctx,
 			webhookUUID,
-			func(ctx context.Context, r *http.Request) error {
+			func(_ context.Context, r *http.Request) error {
 				r.Header.Set("Authorization", "Bearer "+token)
 				return nil
 			},

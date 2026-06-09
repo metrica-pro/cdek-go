@@ -1,3 +1,4 @@
+// Package cdek provides a production-ready Go client for the CDEK delivery API v2.
 package cdek
 
 import (
@@ -80,6 +81,7 @@ func (a *AuthenticatedClient) GetToken(ctx context.Context) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to get token: %w", err)
 	}
+	defer func() { _ = resp.Body.Close() }()
 
 	var tokenResp TokenResponse
 	if err := a.parser.parse(resp, &tokenResp); err != nil {
@@ -126,6 +128,7 @@ func (a *AuthenticatedClient) DoWithResponse(ctx context.Context, method, path s
 	if err != nil {
 		return err
 	}
+	defer func() { _ = resp.Body.Close() }()
 
 	return a.parser.parse(resp, result)
 }

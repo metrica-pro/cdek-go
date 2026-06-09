@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	Oauth2Scopes = "oauth2.Scopes"
+	Oauth2Scopes oauth2ContextKey = "oauth2.Scopes"
 )
 
 // Defines values for AlertDtoType.
@@ -28,12 +28,42 @@ const (
 	AlertDtoTypeWarning AlertDtoType = "warning"
 )
 
+// Valid indicates whether the value is a known member of the AlertDtoType enum.
+func (e AlertDtoType) Valid() bool {
+	switch e {
+	case AlertDtoTypeDanger:
+		return true
+	case AlertDtoTypeInfo:
+		return true
+	case AlertDtoTypeSuccess:
+		return true
+	case AlertDtoTypeWarning:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for RequestInfoDtoState.
 const (
 	RequestInfoDtoStateACCEPTED   RequestInfoDtoState = "ACCEPTED"
 	RequestInfoDtoStateINVALID    RequestInfoDtoState = "INVALID"
 	RequestInfoDtoStateSUCCESSFUL RequestInfoDtoState = "SUCCESSFUL"
 )
+
+// Valid indicates whether the value is a known member of the RequestInfoDtoState enum.
+func (e RequestInfoDtoState) Valid() bool {
+	switch e {
+	case RequestInfoDtoStateACCEPTED:
+		return true
+	case RequestInfoDtoStateINVALID:
+		return true
+	case RequestInfoDtoStateSUCCESSFUL:
+		return true
+	default:
+		return false
+	}
+}
 
 // Defines values for RequestInfoDtoType.
 const (
@@ -43,6 +73,24 @@ const (
 	RequestInfoDtoTypeGET    RequestInfoDtoType = "GET"
 	RequestInfoDtoTypeUPDATE RequestInfoDtoType = "UPDATE"
 )
+
+// Valid indicates whether the value is a known member of the RequestInfoDtoType enum.
+func (e RequestInfoDtoType) Valid() bool {
+	switch e {
+	case RequestInfoDtoTypeAUTH:
+		return true
+	case RequestInfoDtoTypeCREATE:
+		return true
+	case RequestInfoDtoTypeDELETE:
+		return true
+	case RequestInfoDtoTypeGET:
+		return true
+	case RequestInfoDtoTypeUPDATE:
+		return true
+	default:
+		return false
+	}
+}
 
 // Defines values for WebhookDtoType.
 const (
@@ -58,10 +106,48 @@ const (
 	WebhookDtoTypeRECEIPT             WebhookDtoType = "RECEIPT"
 )
 
+// Valid indicates whether the value is a known member of the WebhookDtoType enum.
+func (e WebhookDtoType) Valid() bool {
+	switch e {
+	case WebhookDtoTypeACCOMPANYINGWAYBILL:
+		return true
+	case WebhookDtoTypeCOURIERINFO:
+		return true
+	case WebhookDtoTypeDELIVAGREEMENT:
+		return true
+	case WebhookDtoTypeDELIVPROBLEM:
+		return true
+	case WebhookDtoTypeOFFICEAVAILABILITY:
+		return true
+	case WebhookDtoTypeORDERMODIFIED:
+		return true
+	case WebhookDtoTypeORDERSTATUS:
+		return true
+	case WebhookDtoTypePREALERTCLOSED:
+		return true
+	case WebhookDtoTypePRINTFORM:
+		return true
+	case WebhookDtoTypeRECEIPT:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for GetOAuthTokenFormdataBodyGrantType.
 const (
 	GetOAuthTokenFormdataBodyGrantTypeClientCredentials GetOAuthTokenFormdataBodyGrantType = "client_credentials"
 )
+
+// Valid indicates whether the value is a known member of the GetOAuthTokenFormdataBodyGrantType enum.
+func (e GetOAuthTokenFormdataBodyGrantType) Valid() bool {
+	switch e {
+	case GetOAuthTokenFormdataBodyGrantTypeClientCredentials:
+		return true
+	default:
+		return false
+	}
+}
 
 // AccompanyingWaybillDto Информация для сопроводительной накладной
 type AccompanyingWaybillDto struct {
@@ -3924,6 +4010,9 @@ type WebhookResponseDto struct {
 	Uuid *openapi_types.UUID `json:"uuid,omitempty"`
 }
 
+// oauth2ContextKey is the context key for oauth2 security scheme
+type oauth2ContextKey string
+
 // AvailableTariffsParams defines parameters for AvailableTariffs.
 type AvailableTariffsParams struct {
 	// XUserLang Язык вывода информации о тарифах. <br>Возможные значения: rus, eng, zho. <br>По умолчанию - rus
@@ -5028,7 +5117,7 @@ func NewAvailableTariffsRequest(server string, params *AvailableTariffsParams) (
 		return nil, err
 	}
 
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -5037,7 +5126,7 @@ func NewAvailableTariffsRequest(server string, params *AvailableTariffsParams) (
 
 		var headerParam0 string
 
-		headerParam0, err = runtime.StyleParamWithLocation("simple", false, "X-User-Lang", runtime.ParamLocationHeader, params.XUserLang)
+		headerParam0, err = runtime.StyleParamWithOptions("simple", false, "X-User-Lang", params.XUserLang, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationHeader, Type: "", Format: ""})
 		if err != nil {
 			return nil, err
 		}
@@ -5046,7 +5135,7 @@ func NewAvailableTariffsRequest(server string, params *AvailableTariffsParams) (
 
 		var headerParam1 string
 
-		headerParam1, err = runtime.StyleParamWithLocation("simple", false, "developer-key", runtime.ParamLocationHeader, params.DeveloperKey)
+		headerParam1, err = runtime.StyleParamWithOptions("simple", false, "developer-key", params.DeveloperKey, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationHeader, Type: "", Format: ""})
 		if err != nil {
 			return nil, err
 		}
@@ -5077,7 +5166,7 @@ func NewTariffRequestWithBody(server string, params *TariffParams, contentType s
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", queryURL.String(), body)
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
@@ -5088,7 +5177,7 @@ func NewTariffRequestWithBody(server string, params *TariffParams, contentType s
 
 		var headerParam0 string
 
-		headerParam0, err = runtime.StyleParamWithLocation("simple", false, "developer-key", runtime.ParamLocationHeader, params.DeveloperKey)
+		headerParam0, err = runtime.StyleParamWithOptions("simple", false, "developer-key", params.DeveloperKey, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationHeader, Type: "", Format: ""})
 		if err != nil {
 			return nil, err
 		}
@@ -5119,7 +5208,7 @@ func NewTariffWithServicesRequestWithBody(server string, params *TariffWithServi
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", queryURL.String(), body)
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
@@ -5130,7 +5219,7 @@ func NewTariffWithServicesRequestWithBody(server string, params *TariffWithServi
 
 		var headerParam0 string
 
-		headerParam0, err = runtime.StyleParamWithLocation("simple", false, "developer-key", runtime.ParamLocationHeader, params.DeveloperKey)
+		headerParam0, err = runtime.StyleParamWithOptions("simple", false, "developer-key", params.DeveloperKey, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationHeader, Type: "", Format: ""})
 		if err != nil {
 			return nil, err
 		}
@@ -5161,7 +5250,7 @@ func NewTariffListRequestWithBody(server string, params *TariffListParams, conte
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", queryURL.String(), body)
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
@@ -5172,7 +5261,7 @@ func NewTariffListRequestWithBody(server string, params *TariffListParams, conte
 
 		var headerParam0 string
 
-		headerParam0, err = runtime.StyleParamWithLocation("simple", false, "developer-key", runtime.ParamLocationHeader, params.DeveloperKey)
+		headerParam0, err = runtime.StyleParamWithOptions("simple", false, "developer-key", params.DeveloperKey, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationHeader, Type: "", Format: ""})
 		if err != nil {
 			return nil, err
 		}
@@ -5204,48 +5293,45 @@ func NewGetCheckRequest(server string, params *GetCheckParams) (*http.Request, e
 	}
 
 	if params != nil {
+		// queryValues collects non-styled parameters (passthrough, JSON)
+		// that are safe to round-trip through url.Values.Encode().
 		queryValues := queryURL.Query()
+		// rawQueryFragments collects pre-encoded query fragments from
+		// styled parameters, preserving literal commas as delimiters
+		// per the OpenAPI spec (e.g. "color=blue,black,brown").
+		var rawQueryFragments []string
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "order_uuid", runtime.ParamLocationQuery, params.OrderUuid); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "order_uuid", params.OrderUuid, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "", Format: ""}); err != nil {
 			return nil, err
 		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
+			for _, qp := range strings.Split(queryFrag, "&") {
+				rawQueryFragments = append(rawQueryFragments, qp)
 			}
 		}
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "cdek_number", runtime.ParamLocationQuery, params.CdekNumber); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "cdek_number", params.CdekNumber, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "", Format: ""}); err != nil {
 			return nil, err
 		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
+			for _, qp := range strings.Split(queryFrag, "&") {
+				rawQueryFragments = append(rawQueryFragments, qp)
 			}
 		}
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "date", runtime.ParamLocationQuery, params.Date); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "date", params.Date, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "", Format: ""}); err != nil {
 			return nil, err
 		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
+			for _, qp := range strings.Split(queryFrag, "&") {
+				rawQueryFragments = append(rawQueryFragments, qp)
 			}
 		}
 
-		queryURL.RawQuery = queryValues.Encode()
+		if encoded := queryValues.Encode(); encoded != "" {
+			rawQueryFragments = append(rawQueryFragments, encoded)
+		}
+		queryURL.RawQuery = strings.Join(rawQueryFragments, "&")
 	}
 
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -5272,7 +5358,7 @@ func NewCreateDeliveryRequestWithBody(server string, contentType string, body io
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", queryURL.String(), body)
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
@@ -5301,7 +5387,7 @@ func NewGetEstimatedIntervalsRequestWithBody(server string, contentType string, 
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", queryURL.String(), body)
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
@@ -5331,36 +5417,37 @@ func NewGetIntervalsRequest(server string, params *GetIntervalsParams) (*http.Re
 	}
 
 	if params != nil {
+		// queryValues collects non-styled parameters (passthrough, JSON)
+		// that are safe to round-trip through url.Values.Encode().
 		queryValues := queryURL.Query()
+		// rawQueryFragments collects pre-encoded query fragments from
+		// styled parameters, preserving literal commas as delimiters
+		// per the OpenAPI spec (e.g. "color=blue,black,brown").
+		var rawQueryFragments []string
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "cdek_number", runtime.ParamLocationQuery, params.CdekNumber); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "cdek_number", params.CdekNumber, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "", Format: ""}); err != nil {
 			return nil, err
 		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
+			for _, qp := range strings.Split(queryFrag, "&") {
+				rawQueryFragments = append(rawQueryFragments, qp)
 			}
 		}
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "order_uuid", runtime.ParamLocationQuery, params.OrderUuid); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "order_uuid", params.OrderUuid, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "", Format: ""}); err != nil {
 			return nil, err
 		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
+			for _, qp := range strings.Split(queryFrag, "&") {
+				rawQueryFragments = append(rawQueryFragments, qp)
 			}
 		}
 
-		queryURL.RawQuery = queryValues.Encode()
+		if encoded := queryValues.Encode(); encoded != "" {
+			rawQueryFragments = append(rawQueryFragments, encoded)
+		}
+		queryURL.RawQuery = strings.Join(rawQueryFragments, "&")
 	}
 
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -5374,7 +5461,7 @@ func NewGetDeliveryRequest(server string, uuid interface{}) (*http.Request, erro
 
 	var pathParam0 string
 
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "uuid", runtime.ParamLocationPath, uuid)
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "uuid", uuid, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "", Format: ""})
 	if err != nil {
 		return nil, err
 	}
@@ -5394,7 +5481,7 @@ func NewGetDeliveryRequest(server string, uuid interface{}) (*http.Request, erro
 		return nil, err
 	}
 
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -5422,300 +5509,213 @@ func NewGetDeliverypointsRequest(server string, params *GetDeliverypointsParams)
 	}
 
 	if params != nil {
+		// queryValues collects non-styled parameters (passthrough, JSON)
+		// that are safe to round-trip through url.Values.Encode().
 		queryValues := queryURL.Query()
+		// rawQueryFragments collects pre-encoded query fragments from
+		// styled parameters, preserving literal commas as delimiters
+		// per the OpenAPI spec (e.g. "color=blue,black,brown").
+		var rawQueryFragments []string
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "code", runtime.ParamLocationQuery, params.Code); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "code", params.Code, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "", Format: ""}); err != nil {
 			return nil, err
 		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
+			for _, qp := range strings.Split(queryFrag, "&") {
+				rawQueryFragments = append(rawQueryFragments, qp)
 			}
 		}
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "type", runtime.ParamLocationQuery, params.Type); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "type", params.Type, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "", Format: ""}); err != nil {
 			return nil, err
 		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
+			for _, qp := range strings.Split(queryFrag, "&") {
+				rawQueryFragments = append(rawQueryFragments, qp)
 			}
 		}
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "postal_code", runtime.ParamLocationQuery, params.PostalCode); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "postal_code", params.PostalCode, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "", Format: ""}); err != nil {
 			return nil, err
 		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
+			for _, qp := range strings.Split(queryFrag, "&") {
+				rawQueryFragments = append(rawQueryFragments, qp)
 			}
 		}
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "city_code", runtime.ParamLocationQuery, params.CityCode); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "city_code", params.CityCode, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "", Format: "int32"}); err != nil {
 			return nil, err
 		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
+			for _, qp := range strings.Split(queryFrag, "&") {
+				rawQueryFragments = append(rawQueryFragments, qp)
 			}
 		}
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "country_code", runtime.ParamLocationQuery, params.CountryCode); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "country_code", params.CountryCode, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "", Format: ""}); err != nil {
 			return nil, err
 		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
+			for _, qp := range strings.Split(queryFrag, "&") {
+				rawQueryFragments = append(rawQueryFragments, qp)
 			}
 		}
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "region_code", runtime.ParamLocationQuery, params.RegionCode); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "region_code", params.RegionCode, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "", Format: "int32"}); err != nil {
 			return nil, err
 		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
+			for _, qp := range strings.Split(queryFrag, "&") {
+				rawQueryFragments = append(rawQueryFragments, qp)
 			}
 		}
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "have_cashless", runtime.ParamLocationQuery, params.HaveCashless); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "have_cashless", params.HaveCashless, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "", Format: ""}); err != nil {
 			return nil, err
 		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
+			for _, qp := range strings.Split(queryFrag, "&") {
+				rawQueryFragments = append(rawQueryFragments, qp)
 			}
 		}
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "have_cash", runtime.ParamLocationQuery, params.HaveCash); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "have_cash", params.HaveCash, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "", Format: ""}); err != nil {
 			return nil, err
 		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
+			for _, qp := range strings.Split(queryFrag, "&") {
+				rawQueryFragments = append(rawQueryFragments, qp)
 			}
 		}
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "allowed_cod", runtime.ParamLocationQuery, params.AllowedCod); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "allowed_cod", params.AllowedCod, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "", Format: ""}); err != nil {
 			return nil, err
 		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
+			for _, qp := range strings.Split(queryFrag, "&") {
+				rawQueryFragments = append(rawQueryFragments, qp)
 			}
 		}
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "is_dressing_room", runtime.ParamLocationQuery, params.IsDressingRoom); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "is_dressing_room", params.IsDressingRoom, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "", Format: ""}); err != nil {
 			return nil, err
 		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
+			for _, qp := range strings.Split(queryFrag, "&") {
+				rawQueryFragments = append(rawQueryFragments, qp)
 			}
 		}
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "weight_max", runtime.ParamLocationQuery, params.WeightMax); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "weight_max", params.WeightMax, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "", Format: "int32"}); err != nil {
 			return nil, err
 		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
+			for _, qp := range strings.Split(queryFrag, "&") {
+				rawQueryFragments = append(rawQueryFragments, qp)
 			}
 		}
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "weight_min", runtime.ParamLocationQuery, params.WeightMin); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "weight_min", params.WeightMin, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "", Format: "int32"}); err != nil {
 			return nil, err
 		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
+			for _, qp := range strings.Split(queryFrag, "&") {
+				rawQueryFragments = append(rawQueryFragments, qp)
 			}
 		}
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "lang", runtime.ParamLocationQuery, params.Lang); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "lang", params.Lang, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "", Format: ""}); err != nil {
 			return nil, err
 		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
+			for _, qp := range strings.Split(queryFrag, "&") {
+				rawQueryFragments = append(rawQueryFragments, qp)
 			}
 		}
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "take_only", runtime.ParamLocationQuery, params.TakeOnly); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "take_only", params.TakeOnly, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "", Format: ""}); err != nil {
 			return nil, err
 		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
+			for _, qp := range strings.Split(queryFrag, "&") {
+				rawQueryFragments = append(rawQueryFragments, qp)
 			}
 		}
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "is_handout", runtime.ParamLocationQuery, params.IsHandout); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "is_handout", params.IsHandout, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "", Format: ""}); err != nil {
 			return nil, err
 		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
+			for _, qp := range strings.Split(queryFrag, "&") {
+				rawQueryFragments = append(rawQueryFragments, qp)
 			}
 		}
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "is_reception", runtime.ParamLocationQuery, params.IsReception); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "is_reception", params.IsReception, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "", Format: ""}); err != nil {
 			return nil, err
 		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
+			for _, qp := range strings.Split(queryFrag, "&") {
+				rawQueryFragments = append(rawQueryFragments, qp)
 			}
 		}
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "is_marketplace", runtime.ParamLocationQuery, params.IsMarketplace); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "is_marketplace", params.IsMarketplace, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "", Format: ""}); err != nil {
 			return nil, err
 		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
+			for _, qp := range strings.Split(queryFrag, "&") {
+				rawQueryFragments = append(rawQueryFragments, qp)
 			}
 		}
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "is_ltl", runtime.ParamLocationQuery, params.IsLtl); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "is_ltl", params.IsLtl, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "", Format: ""}); err != nil {
 			return nil, err
 		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
+			for _, qp := range strings.Split(queryFrag, "&") {
+				rawQueryFragments = append(rawQueryFragments, qp)
 			}
 		}
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "ltl_acceptance_partners", runtime.ParamLocationQuery, params.LtlAcceptancePartners); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "ltl_acceptance_partners", params.LtlAcceptancePartners, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "", Format: ""}); err != nil {
 			return nil, err
 		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
+			for _, qp := range strings.Split(queryFrag, "&") {
+				rawQueryFragments = append(rawQueryFragments, qp)
 			}
 		}
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "ltl_issuance_partners", runtime.ParamLocationQuery, params.LtlIssuancePartners); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "ltl_issuance_partners", params.LtlIssuancePartners, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "", Format: ""}); err != nil {
 			return nil, err
 		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
+			for _, qp := range strings.Split(queryFrag, "&") {
+				rawQueryFragments = append(rawQueryFragments, qp)
 			}
 		}
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "fulfillment", runtime.ParamLocationQuery, params.Fulfillment); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "fulfillment", params.Fulfillment, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "", Format: ""}); err != nil {
 			return nil, err
 		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
+			for _, qp := range strings.Split(queryFrag, "&") {
+				rawQueryFragments = append(rawQueryFragments, qp)
 			}
 		}
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "fias_guid", runtime.ParamLocationQuery, params.FiasGuid); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "fias_guid", params.FiasGuid, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "", Format: "uuid"}); err != nil {
 			return nil, err
 		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
+			for _, qp := range strings.Split(queryFrag, "&") {
+				rawQueryFragments = append(rawQueryFragments, qp)
 			}
 		}
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "size", runtime.ParamLocationQuery, params.Size); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "size", params.Size, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "", Format: "int32"}); err != nil {
 			return nil, err
 		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
+			for _, qp := range strings.Split(queryFrag, "&") {
+				rawQueryFragments = append(rawQueryFragments, qp)
 			}
 		}
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, params.Page); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "page", params.Page, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "", Format: "int32"}); err != nil {
 			return nil, err
 		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
+			for _, qp := range strings.Split(queryFrag, "&") {
+				rawQueryFragments = append(rawQueryFragments, qp)
 			}
 		}
 
-		queryURL.RawQuery = queryValues.Encode()
+		if encoded := queryValues.Encode(); encoded != "" {
+			rawQueryFragments = append(rawQueryFragments, encoded)
+		}
+		queryURL.RawQuery = strings.Join(rawQueryFragments, "&")
 	}
 
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -5742,7 +5742,7 @@ func NewChangeStatusRequestWithBody(server string, contentType string, body io.R
 		return nil, err
 	}
 
-	req, err := http.NewRequest("PATCH", queryURL.String(), body)
+	req, err := http.NewRequest(http.MethodPatch, queryURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
@@ -5771,7 +5771,7 @@ func NewCreateIntakeRequestWithBody(server string, contentType string, body io.R
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", queryURL.String(), body)
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
@@ -5800,7 +5800,7 @@ func NewGetAvailableDaysRequestWithBody(server string, contentType string, body 
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", queryURL.String(), body)
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
@@ -5816,7 +5816,7 @@ func NewDeleteByUuidRequest(server string, uuid interface{}) (*http.Request, err
 
 	var pathParam0 string
 
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "uuid", runtime.ParamLocationPath, uuid)
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "uuid", uuid, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "", Format: ""})
 	if err != nil {
 		return nil, err
 	}
@@ -5836,7 +5836,7 @@ func NewDeleteByUuidRequest(server string, uuid interface{}) (*http.Request, err
 		return nil, err
 	}
 
-	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	req, err := http.NewRequest(http.MethodDelete, queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -5850,7 +5850,7 @@ func NewGetByUuidRequest(server string, uuid interface{}) (*http.Request, error)
 
 	var pathParam0 string
 
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "uuid", runtime.ParamLocationPath, uuid)
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "uuid", uuid, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "", Format: ""})
 	if err != nil {
 		return nil, err
 	}
@@ -5870,7 +5870,7 @@ func NewGetByUuidRequest(server string, uuid interface{}) (*http.Request, error)
 		return nil, err
 	}
 
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -5897,7 +5897,7 @@ func NewCheckPackagesRestrictionsRequestWithBody(server string, contentType stri
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", queryURL.String(), body)
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
@@ -5927,19 +5927,21 @@ func NewCitiesRequest(server string, params *CitiesParams) (*http.Request, error
 	}
 
 	if params != nil {
+		// queryValues collects non-styled parameters (passthrough, JSON)
+		// that are safe to round-trip through url.Values.Encode().
 		queryValues := queryURL.Query()
+		// rawQueryFragments collects pre-encoded query fragments from
+		// styled parameters, preserving literal commas as delimiters
+		// per the OpenAPI spec (e.g. "color=blue,black,brown").
+		var rawQueryFragments []string
 
 		if params.CountryCodes != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "country_codes", runtime.ParamLocationQuery, *params.CountryCodes); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "country_codes", *params.CountryCodes, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
 				return nil, err
 			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
 				}
 			}
 
@@ -5947,15 +5949,11 @@ func NewCitiesRequest(server string, params *CitiesParams) (*http.Request, error
 
 		if params.RegionCode != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "region_code", runtime.ParamLocationQuery, *params.RegionCode); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "region_code", *params.RegionCode, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "integer", Format: "int32"}); err != nil {
 				return nil, err
 			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
 				}
 			}
 
@@ -5963,15 +5961,11 @@ func NewCitiesRequest(server string, params *CitiesParams) (*http.Request, error
 
 		if params.KladrRegionCode != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "kladr_region_code", runtime.ParamLocationQuery, *params.KladrRegionCode); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "kladr_region_code", *params.KladrRegionCode, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
 				return nil, err
 			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
 				}
 			}
 
@@ -5979,15 +5973,11 @@ func NewCitiesRequest(server string, params *CitiesParams) (*http.Request, error
 
 		if params.FiasRegionGuid != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "fias_region_guid", runtime.ParamLocationQuery, *params.FiasRegionGuid); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "fias_region_guid", *params.FiasRegionGuid, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: "uuid"}); err != nil {
 				return nil, err
 			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
 				}
 			}
 
@@ -5995,15 +5985,11 @@ func NewCitiesRequest(server string, params *CitiesParams) (*http.Request, error
 
 		if params.KladrCode != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "kladr_code", runtime.ParamLocationQuery, *params.KladrCode); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "kladr_code", *params.KladrCode, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
 				return nil, err
 			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
 				}
 			}
 
@@ -6011,15 +5997,11 @@ func NewCitiesRequest(server string, params *CitiesParams) (*http.Request, error
 
 		if params.FiasGuid != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "fias_guid", runtime.ParamLocationQuery, *params.FiasGuid); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "fias_guid", *params.FiasGuid, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: "uuid"}); err != nil {
 				return nil, err
 			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
 				}
 			}
 
@@ -6027,15 +6009,11 @@ func NewCitiesRequest(server string, params *CitiesParams) (*http.Request, error
 
 		if params.PostalCode != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "postal_code", runtime.ParamLocationQuery, *params.PostalCode); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "postal_code", *params.PostalCode, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
 				return nil, err
 			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
 				}
 			}
 
@@ -6043,15 +6021,11 @@ func NewCitiesRequest(server string, params *CitiesParams) (*http.Request, error
 
 		if params.Code != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "code", runtime.ParamLocationQuery, *params.Code); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "code", *params.Code, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "integer", Format: "int32"}); err != nil {
 				return nil, err
 			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
 				}
 			}
 
@@ -6059,15 +6033,11 @@ func NewCitiesRequest(server string, params *CitiesParams) (*http.Request, error
 
 		if params.City != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "city", runtime.ParamLocationQuery, *params.City); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "city", *params.City, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
 				return nil, err
 			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
 				}
 			}
 
@@ -6075,15 +6045,11 @@ func NewCitiesRequest(server string, params *CitiesParams) (*http.Request, error
 
 		if params.PaymentLimit != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "payment_limit", runtime.ParamLocationQuery, *params.PaymentLimit); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "payment_limit", *params.PaymentLimit, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "number", Format: "double"}); err != nil {
 				return nil, err
 			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
 				}
 			}
 
@@ -6091,15 +6057,11 @@ func NewCitiesRequest(server string, params *CitiesParams) (*http.Request, error
 
 		if params.Size != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "size", runtime.ParamLocationQuery, *params.Size); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "size", *params.Size, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "integer", Format: "int32"}); err != nil {
 				return nil, err
 			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
 				}
 			}
 
@@ -6107,15 +6069,11 @@ func NewCitiesRequest(server string, params *CitiesParams) (*http.Request, error
 
 		if params.Page != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "page", *params.Page, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "integer", Format: "int32"}); err != nil {
 				return nil, err
 			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
 				}
 			}
 
@@ -6123,24 +6081,23 @@ func NewCitiesRequest(server string, params *CitiesParams) (*http.Request, error
 
 		if params.Lang != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "lang", runtime.ParamLocationQuery, *params.Lang); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "lang", *params.Lang, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
 				return nil, err
 			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
 				}
 			}
 
 		}
 
-		queryURL.RawQuery = queryValues.Encode()
+		if encoded := queryValues.Encode(); encoded != "" {
+			rawQueryFragments = append(rawQueryFragments, encoded)
+		}
+		queryURL.RawQuery = strings.Join(rawQueryFragments, "&")
 	}
 
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -6168,36 +6125,37 @@ func NewGetCityByCoordinatesRequest(server string, params *GetCityByCoordinatesP
 	}
 
 	if params != nil {
+		// queryValues collects non-styled parameters (passthrough, JSON)
+		// that are safe to round-trip through url.Values.Encode().
 		queryValues := queryURL.Query()
+		// rawQueryFragments collects pre-encoded query fragments from
+		// styled parameters, preserving literal commas as delimiters
+		// per the OpenAPI spec (e.g. "color=blue,black,brown").
+		var rawQueryFragments []string
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "latitude", runtime.ParamLocationQuery, params.Latitude); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "latitude", params.Latitude, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "number", Format: ""}); err != nil {
 			return nil, err
 		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
+			for _, qp := range strings.Split(queryFrag, "&") {
+				rawQueryFragments = append(rawQueryFragments, qp)
 			}
 		}
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "longitude", runtime.ParamLocationQuery, params.Longitude); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "longitude", params.Longitude, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "number", Format: ""}); err != nil {
 			return nil, err
 		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
+			for _, qp := range strings.Split(queryFrag, "&") {
+				rawQueryFragments = append(rawQueryFragments, qp)
 			}
 		}
 
-		queryURL.RawQuery = queryValues.Encode()
+		if encoded := queryValues.Encode(); encoded != "" {
+			rawQueryFragments = append(rawQueryFragments, encoded)
+		}
+		queryURL.RawQuery = strings.Join(rawQueryFragments, "&")
 	}
 
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -6225,24 +6183,29 @@ func NewPostalcodesRequest(server string, params *PostalcodesParams) (*http.Requ
 	}
 
 	if params != nil {
+		// queryValues collects non-styled parameters (passthrough, JSON)
+		// that are safe to round-trip through url.Values.Encode().
 		queryValues := queryURL.Query()
+		// rawQueryFragments collects pre-encoded query fragments from
+		// styled parameters, preserving literal commas as delimiters
+		// per the OpenAPI spec (e.g. "color=blue,black,brown").
+		var rawQueryFragments []string
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "city_code", runtime.ParamLocationQuery, params.CityCode); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "city_code", params.CityCode, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "integer", Format: "int32"}); err != nil {
 			return nil, err
 		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
+			for _, qp := range strings.Split(queryFrag, "&") {
+				rawQueryFragments = append(rawQueryFragments, qp)
 			}
 		}
 
-		queryURL.RawQuery = queryValues.Encode()
+		if encoded := queryValues.Encode(); encoded != "" {
+			rawQueryFragments = append(rawQueryFragments, encoded)
+		}
+		queryURL.RawQuery = strings.Join(rawQueryFragments, "&")
 	}
 
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -6270,19 +6233,21 @@ func NewRegionsRequest(server string, params *RegionsParams) (*http.Request, err
 	}
 
 	if params != nil {
+		// queryValues collects non-styled parameters (passthrough, JSON)
+		// that are safe to round-trip through url.Values.Encode().
 		queryValues := queryURL.Query()
+		// rawQueryFragments collects pre-encoded query fragments from
+		// styled parameters, preserving literal commas as delimiters
+		// per the OpenAPI spec (e.g. "color=blue,black,brown").
+		var rawQueryFragments []string
 
 		if params.CountryCodes != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "country_codes", runtime.ParamLocationQuery, *params.CountryCodes); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "country_codes", *params.CountryCodes, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
 				return nil, err
 			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
 				}
 			}
 
@@ -6290,15 +6255,11 @@ func NewRegionsRequest(server string, params *RegionsParams) (*http.Request, err
 
 		if params.FiasRegionGuid != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "fias_region_guid", runtime.ParamLocationQuery, *params.FiasRegionGuid); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "fias_region_guid", *params.FiasRegionGuid, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: "uuid"}); err != nil {
 				return nil, err
 			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
 				}
 			}
 
@@ -6306,15 +6267,11 @@ func NewRegionsRequest(server string, params *RegionsParams) (*http.Request, err
 
 		if params.Size != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "size", runtime.ParamLocationQuery, *params.Size); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "size", *params.Size, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "integer", Format: "int32"}); err != nil {
 				return nil, err
 			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
 				}
 			}
 
@@ -6322,15 +6279,11 @@ func NewRegionsRequest(server string, params *RegionsParams) (*http.Request, err
 
 		if params.Page != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "page", *params.Page, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "integer", Format: "int32"}); err != nil {
 				return nil, err
 			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
 				}
 			}
 
@@ -6338,24 +6291,23 @@ func NewRegionsRequest(server string, params *RegionsParams) (*http.Request, err
 
 		if params.Lang != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "lang", runtime.ParamLocationQuery, *params.Lang); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "lang", *params.Lang, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
 				return nil, err
 			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
 				}
 			}
 
 		}
 
-		queryURL.RawQuery = queryValues.Encode()
+		if encoded := queryValues.Encode(); encoded != "" {
+			rawQueryFragments = append(rawQueryFragments, encoded)
+		}
+		queryURL.RawQuery = strings.Join(rawQueryFragments, "&")
 	}
 
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -6383,40 +6335,41 @@ func NewSuggestCitiesRequest(server string, params *SuggestCitiesParams) (*http.
 	}
 
 	if params != nil {
+		// queryValues collects non-styled parameters (passthrough, JSON)
+		// that are safe to round-trip through url.Values.Encode().
 		queryValues := queryURL.Query()
+		// rawQueryFragments collects pre-encoded query fragments from
+		// styled parameters, preserving literal commas as delimiters
+		// per the OpenAPI spec (e.g. "color=blue,black,brown").
+		var rawQueryFragments []string
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "name", runtime.ParamLocationQuery, params.Name); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "name", params.Name, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
 			return nil, err
 		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
+			for _, qp := range strings.Split(queryFrag, "&") {
+				rawQueryFragments = append(rawQueryFragments, qp)
 			}
 		}
 
 		if params.CountryCode != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "country_code", runtime.ParamLocationQuery, *params.CountryCode); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "country_code", *params.CountryCode, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
 				return nil, err
 			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
 				}
 			}
 
 		}
 
-		queryURL.RawQuery = queryValues.Encode()
+		if encoded := queryValues.Encode(); encoded != "" {
+			rawQueryFragments = append(rawQueryFragments, encoded)
+		}
+		queryURL.RawQuery = strings.Join(rawQueryFragments, "&")
 	}
 
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -6454,7 +6407,7 @@ func NewGetOAuthTokenRequestWithBody(server string, contentType string, body io.
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", queryURL.String(), body)
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
@@ -6484,36 +6437,37 @@ func NewGetOrdersRequest(server string, params *GetOrdersParams) (*http.Request,
 	}
 
 	if params != nil {
+		// queryValues collects non-styled parameters (passthrough, JSON)
+		// that are safe to round-trip through url.Values.Encode().
 		queryValues := queryURL.Query()
+		// rawQueryFragments collects pre-encoded query fragments from
+		// styled parameters, preserving literal commas as delimiters
+		// per the OpenAPI spec (e.g. "color=blue,black,brown").
+		var rawQueryFragments []string
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "cdek_number", runtime.ParamLocationQuery, params.CdekNumber); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "cdek_number", params.CdekNumber, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "", Format: "int64"}); err != nil {
 			return nil, err
 		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
+			for _, qp := range strings.Split(queryFrag, "&") {
+				rawQueryFragments = append(rawQueryFragments, qp)
 			}
 		}
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "im_number", runtime.ParamLocationQuery, params.ImNumber); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "im_number", params.ImNumber, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "", Format: ""}); err != nil {
 			return nil, err
 		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
+			for _, qp := range strings.Split(queryFrag, "&") {
+				rawQueryFragments = append(rawQueryFragments, qp)
 			}
 		}
 
-		queryURL.RawQuery = queryValues.Encode()
+		if encoded := queryValues.Encode(); encoded != "" {
+			rawQueryFragments = append(rawQueryFragments, encoded)
+		}
+		queryURL.RawQuery = strings.Join(rawQueryFragments, "&")
 	}
 
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -6540,7 +6494,7 @@ func NewUpdateRequestWithBody(server string, params *UpdateParams, contentType s
 		return nil, err
 	}
 
-	req, err := http.NewRequest("PATCH", queryURL.String(), body)
+	req, err := http.NewRequest(http.MethodPatch, queryURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
@@ -6551,7 +6505,7 @@ func NewUpdateRequestWithBody(server string, params *UpdateParams, contentType s
 
 		var headerParam0 string
 
-		headerParam0, err = runtime.StyleParamWithLocation("simple", false, "developer-key", runtime.ParamLocationHeader, params.DeveloperKey)
+		headerParam0, err = runtime.StyleParamWithOptions("simple", false, "developer-key", params.DeveloperKey, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationHeader, Type: "", Format: ""})
 		if err != nil {
 			return nil, err
 		}
@@ -6582,7 +6536,7 @@ func NewCreateOrderRequestWithBody(server string, params *CreateOrderParams, con
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", queryURL.String(), body)
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
@@ -6593,7 +6547,7 @@ func NewCreateOrderRequestWithBody(server string, params *CreateOrderParams, con
 
 		var headerParam0 string
 
-		headerParam0, err = runtime.StyleParamWithLocation("simple", false, "developer-key", runtime.ParamLocationHeader, params.DeveloperKey)
+		headerParam0, err = runtime.StyleParamWithOptions("simple", false, "developer-key", params.DeveloperKey, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationHeader, Type: "", Format: ""})
 		if err != nil {
 			return nil, err
 		}
@@ -6611,7 +6565,7 @@ func NewGetIntakesRequest(server string, orderUuid interface{}, params *GetIntak
 
 	var pathParam0 string
 
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "orderUuid", runtime.ParamLocationPath, orderUuid)
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "orderUuid", orderUuid, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "", Format: "uuid"})
 	if err != nil {
 		return nil, err
 	}
@@ -6632,24 +6586,29 @@ func NewGetIntakesRequest(server string, orderUuid interface{}, params *GetIntak
 	}
 
 	if params != nil {
+		// queryValues collects non-styled parameters (passthrough, JSON)
+		// that are safe to round-trip through url.Values.Encode().
 		queryValues := queryURL.Query()
+		// rawQueryFragments collects pre-encoded query fragments from
+		// styled parameters, preserving literal commas as delimiters
+		// per the OpenAPI spec (e.g. "color=blue,black,brown").
+		var rawQueryFragments []string
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "uuid", runtime.ParamLocationQuery, params.Uuid); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "uuid", params.Uuid, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "", Format: ""}); err != nil {
 			return nil, err
 		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
+			for _, qp := range strings.Split(queryFrag, "&") {
+				rawQueryFragments = append(rawQueryFragments, qp)
 			}
 		}
 
-		queryURL.RawQuery = queryValues.Encode()
+		if encoded := queryValues.Encode(); encoded != "" {
+			rawQueryFragments = append(rawQueryFragments, encoded)
+		}
+		queryURL.RawQuery = strings.Join(rawQueryFragments, "&")
 	}
 
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -6663,7 +6622,7 @@ func NewDeleteRequest(server string, uuid interface{}) (*http.Request, error) {
 
 	var pathParam0 string
 
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "uuid", runtime.ParamLocationPath, uuid)
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "uuid", uuid, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "", Format: ""})
 	if err != nil {
 		return nil, err
 	}
@@ -6683,7 +6642,7 @@ func NewDeleteRequest(server string, uuid interface{}) (*http.Request, error) {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	req, err := http.NewRequest(http.MethodDelete, queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -6697,7 +6656,7 @@ func NewGetOrderRequest(server string, uuid interface{}) (*http.Request, error) 
 
 	var pathParam0 string
 
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "uuid", runtime.ParamLocationPath, uuid)
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "uuid", uuid, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "", Format: ""})
 	if err != nil {
 		return nil, err
 	}
@@ -6717,7 +6676,7 @@ func NewGetOrderRequest(server string, uuid interface{}) (*http.Request, error) 
 		return nil, err
 	}
 
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -6731,7 +6690,7 @@ func NewClientReturnRequestWithBody(server string, uuid interface{}, contentType
 
 	var pathParam0 string
 
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "uuid", runtime.ParamLocationPath, uuid)
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "uuid", uuid, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "", Format: ""})
 	if err != nil {
 		return nil, err
 	}
@@ -6751,7 +6710,7 @@ func NewClientReturnRequestWithBody(server string, uuid interface{}, contentType
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", queryURL.String(), body)
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
@@ -6767,7 +6726,7 @@ func NewRefuseRequest(server string, uuid interface{}) (*http.Request, error) {
 
 	var pathParam0 string
 
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "uuid", runtime.ParamLocationPath, uuid)
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "uuid", uuid, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "", Format: ""})
 	if err != nil {
 		return nil, err
 	}
@@ -6787,7 +6746,7 @@ func NewRefuseRequest(server string, uuid interface{}) (*http.Request, error) {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", queryURL.String(), nil)
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -6815,48 +6774,45 @@ func NewGetPassportRequest(server string, params *GetPassportParams) (*http.Requ
 	}
 
 	if params != nil {
+		// queryValues collects non-styled parameters (passthrough, JSON)
+		// that are safe to round-trip through url.Values.Encode().
 		queryValues := queryURL.Query()
+		// rawQueryFragments collects pre-encoded query fragments from
+		// styled parameters, preserving literal commas as delimiters
+		// per the OpenAPI spec (e.g. "color=blue,black,brown").
+		var rawQueryFragments []string
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "cdek_number", runtime.ParamLocationQuery, params.CdekNumber); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "cdek_number", params.CdekNumber, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "", Format: ""}); err != nil {
 			return nil, err
 		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
+			for _, qp := range strings.Split(queryFrag, "&") {
+				rawQueryFragments = append(rawQueryFragments, qp)
 			}
 		}
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "order_uuid", runtime.ParamLocationQuery, params.OrderUuid); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "order_uuid", params.OrderUuid, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "", Format: ""}); err != nil {
 			return nil, err
 		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
+			for _, qp := range strings.Split(queryFrag, "&") {
+				rawQueryFragments = append(rawQueryFragments, qp)
 			}
 		}
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "client", runtime.ParamLocationQuery, params.Client); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "client", params.Client, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "", Format: ""}); err != nil {
 			return nil, err
 		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
+			for _, qp := range strings.Split(queryFrag, "&") {
+				rawQueryFragments = append(rawQueryFragments, qp)
 			}
 		}
 
-		queryURL.RawQuery = queryValues.Encode()
+		if encoded := queryValues.Encode(); encoded != "" {
+			rawQueryFragments = append(rawQueryFragments, encoded)
+		}
+		queryURL.RawQuery = strings.Join(rawQueryFragments, "&")
 	}
 
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -6884,24 +6840,29 @@ func NewGetPaymentRequest(server string, params *GetPaymentParams) (*http.Reques
 	}
 
 	if params != nil {
+		// queryValues collects non-styled parameters (passthrough, JSON)
+		// that are safe to round-trip through url.Values.Encode().
 		queryValues := queryURL.Query()
+		// rawQueryFragments collects pre-encoded query fragments from
+		// styled parameters, preserving literal commas as delimiters
+		// per the OpenAPI spec (e.g. "color=blue,black,brown").
+		var rawQueryFragments []string
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "date", runtime.ParamLocationQuery, params.Date); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "date", params.Date, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "", Format: "date"}); err != nil {
 			return nil, err
 		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
+			for _, qp := range strings.Split(queryFrag, "&") {
+				rawQueryFragments = append(rawQueryFragments, qp)
 			}
 		}
 
-		queryURL.RawQuery = queryValues.Encode()
+		if encoded := queryValues.Encode(); encoded != "" {
+			rawQueryFragments = append(rawQueryFragments, encoded)
+		}
+		queryURL.RawQuery = strings.Join(rawQueryFragments, "&")
 	}
 
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -6928,7 +6889,7 @@ func NewGetReadyOrdersRequestWithBody(server string, contentType string, body io
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", queryURL.String(), body)
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
@@ -6957,7 +6918,7 @@ func NewRegisterRequestWithBody(server string, contentType string, body io.Reade
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", queryURL.String(), body)
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
@@ -6973,7 +6934,7 @@ func NewGetPrealertRequest(server string, uuid interface{}) (*http.Request, erro
 
 	var pathParam0 string
 
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "uuid", runtime.ParamLocationPath, uuid)
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "uuid", uuid, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "", Format: ""})
 	if err != nil {
 		return nil, err
 	}
@@ -6993,7 +6954,7 @@ func NewGetPrealertRequest(server string, uuid interface{}) (*http.Request, erro
 		return nil, err
 	}
 
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -7020,7 +6981,7 @@ func NewBarcodePrintRequestWithBody(server string, contentType string, body io.R
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", queryURL.String(), body)
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
@@ -7036,7 +6997,7 @@ func NewBarcodeGetRequest(server string, uuid interface{}) (*http.Request, error
 
 	var pathParam0 string
 
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "uuid", runtime.ParamLocationPath, uuid)
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "uuid", uuid, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "", Format: "uuid"})
 	if err != nil {
 		return nil, err
 	}
@@ -7056,7 +7017,7 @@ func NewBarcodeGetRequest(server string, uuid interface{}) (*http.Request, error
 		return nil, err
 	}
 
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -7070,7 +7031,7 @@ func NewBarcodeDownloadRequest(server string, uuid interface{}) (*http.Request, 
 
 	var pathParam0 string
 
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "uuid", runtime.ParamLocationPath, uuid)
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "uuid", uuid, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "", Format: "uuid"})
 	if err != nil {
 		return nil, err
 	}
@@ -7090,7 +7051,7 @@ func NewBarcodeDownloadRequest(server string, uuid interface{}) (*http.Request, 
 		return nil, err
 	}
 
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -7117,7 +7078,7 @@ func NewWaybillPrintRequestWithBody(server string, contentType string, body io.R
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", queryURL.String(), body)
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
@@ -7133,7 +7094,7 @@ func NewWaybillGetRequest(server string, uuid interface{}) (*http.Request, error
 
 	var pathParam0 string
 
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "uuid", runtime.ParamLocationPath, uuid)
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "uuid", uuid, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "", Format: "uuid"})
 	if err != nil {
 		return nil, err
 	}
@@ -7153,7 +7114,7 @@ func NewWaybillGetRequest(server string, uuid interface{}) (*http.Request, error
 		return nil, err
 	}
 
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -7167,7 +7128,7 @@ func NewWaybillDownloadRequest(server string, uuid interface{}) (*http.Request, 
 
 	var pathParam0 string
 
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "uuid", runtime.ParamLocationPath, uuid)
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "uuid", uuid, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "", Format: "uuid"})
 	if err != nil {
 		return nil, err
 	}
@@ -7187,7 +7148,7 @@ func NewWaybillDownloadRequest(server string, uuid interface{}) (*http.Request, 
 		return nil, err
 	}
 
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -7215,24 +7176,29 @@ func NewGetRegistriesRequest(server string, params *GetRegistriesParams) (*http.
 	}
 
 	if params != nil {
+		// queryValues collects non-styled parameters (passthrough, JSON)
+		// that are safe to round-trip through url.Values.Encode().
 		queryValues := queryURL.Query()
+		// rawQueryFragments collects pre-encoded query fragments from
+		// styled parameters, preserving literal commas as delimiters
+		// per the OpenAPI spec (e.g. "color=blue,black,brown").
+		var rawQueryFragments []string
 
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "date", runtime.ParamLocationQuery, params.Date); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+		if queryFrag, err := runtime.StyleParamWithOptions("form", true, "date", params.Date, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "", Format: "date"}); err != nil {
 			return nil, err
 		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
+			for _, qp := range strings.Split(queryFrag, "&") {
+				rawQueryFragments = append(rawQueryFragments, qp)
 			}
 		}
 
-		queryURL.RawQuery = queryValues.Encode()
+		if encoded := queryValues.Encode(); encoded != "" {
+			rawQueryFragments = append(rawQueryFragments, encoded)
+		}
+		queryURL.RawQuery = strings.Join(rawQueryFragments, "&")
 	}
 
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -7259,7 +7225,7 @@ func NewCheckAvailabilityRequestWithBody(server string, contentType string, body
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", queryURL.String(), body)
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
@@ -7288,7 +7254,7 @@ func NewGetAllRequest(server string) (*http.Request, error) {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -7315,7 +7281,7 @@ func NewCreateV2WebhooksRequestWithBody(server string, contentType string, body 
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", queryURL.String(), body)
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
@@ -7331,7 +7297,7 @@ func NewDeleteByIdRequest(server string, uuid string) (*http.Request, error) {
 
 	var pathParam0 string
 
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "uuid", runtime.ParamLocationPath, uuid)
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "uuid", uuid, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
 	if err != nil {
 		return nil, err
 	}
@@ -7351,7 +7317,7 @@ func NewDeleteByIdRequest(server string, uuid string) (*http.Request, error) {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("DELETE", queryURL.String(), nil)
+	req, err := http.NewRequest(http.MethodDelete, queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -7365,7 +7331,7 @@ func NewGetByIdRequest(server string, uuid string) (*http.Request, error) {
 
 	var pathParam0 string
 
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "uuid", runtime.ParamLocationPath, uuid)
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "uuid", uuid, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
 	if err != nil {
 		return nil, err
 	}
@@ -7385,7 +7351,7 @@ func NewGetByIdRequest(server string, uuid string) (*http.Request, error) {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -7601,6 +7567,14 @@ func (r AvailableTariffsResponse) StatusCode() int {
 	return 0
 }
 
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r AvailableTariffsResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
 type TariffResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -7620,6 +7594,14 @@ func (r TariffResponse) StatusCode() int {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r TariffResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
 }
 
 type TariffWithServicesResponse struct {
@@ -7643,6 +7625,14 @@ func (r TariffWithServicesResponse) StatusCode() int {
 	return 0
 }
 
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r TariffWithServicesResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
 type TariffListResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -7662,6 +7652,14 @@ func (r TariffListResponse) StatusCode() int {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r TariffListResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
 }
 
 type GetCheckResponse struct {
@@ -7685,6 +7683,14 @@ func (r GetCheckResponse) StatusCode() int {
 	return 0
 }
 
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetCheckResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
 type CreateDeliveryResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -7704,6 +7710,14 @@ func (r CreateDeliveryResponse) StatusCode() int {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r CreateDeliveryResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
 }
 
 type GetEstimatedIntervalsResponse struct {
@@ -7727,6 +7741,14 @@ func (r GetEstimatedIntervalsResponse) StatusCode() int {
 	return 0
 }
 
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetEstimatedIntervalsResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
 type GetIntervalsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -7746,6 +7768,14 @@ func (r GetIntervalsResponse) StatusCode() int {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetIntervalsResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
 }
 
 type GetDeliveryResponse struct {
@@ -7769,6 +7799,14 @@ func (r GetDeliveryResponse) StatusCode() int {
 	return 0
 }
 
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetDeliveryResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
 type GetDeliverypointsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -7788,6 +7826,14 @@ func (r GetDeliverypointsResponse) StatusCode() int {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetDeliverypointsResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
 }
 
 type ChangeStatusResponse struct {
@@ -7811,6 +7857,14 @@ func (r ChangeStatusResponse) StatusCode() int {
 	return 0
 }
 
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r ChangeStatusResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
 type CreateIntakeResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -7830,6 +7884,14 @@ func (r CreateIntakeResponse) StatusCode() int {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r CreateIntakeResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
 }
 
 type GetAvailableDaysResponse struct {
@@ -7853,6 +7915,14 @@ func (r GetAvailableDaysResponse) StatusCode() int {
 	return 0
 }
 
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetAvailableDaysResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
 type DeleteByUuidResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -7872,6 +7942,14 @@ func (r DeleteByUuidResponse) StatusCode() int {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r DeleteByUuidResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
 }
 
 type GetByUuidResponse struct {
@@ -7895,6 +7973,14 @@ func (r GetByUuidResponse) StatusCode() int {
 	return 0
 }
 
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetByUuidResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
 type CheckPackagesRestrictionsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -7914,6 +8000,14 @@ func (r CheckPackagesRestrictionsResponse) StatusCode() int {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r CheckPackagesRestrictionsResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
 }
 
 type CitiesResponse struct {
@@ -7937,6 +8031,14 @@ func (r CitiesResponse) StatusCode() int {
 	return 0
 }
 
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r CitiesResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
 type GetCityByCoordinatesResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -7956,6 +8058,14 @@ func (r GetCityByCoordinatesResponse) StatusCode() int {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetCityByCoordinatesResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
 }
 
 type PostalcodesResponse struct {
@@ -7979,6 +8089,14 @@ func (r PostalcodesResponse) StatusCode() int {
 	return 0
 }
 
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r PostalcodesResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
 type RegionsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -7998,6 +8116,14 @@ func (r RegionsResponse) StatusCode() int {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r RegionsResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
 }
 
 type SuggestCitiesResponse struct {
@@ -8021,6 +8147,14 @@ func (r SuggestCitiesResponse) StatusCode() int {
 	return 0
 }
 
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r SuggestCitiesResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
 type GetOAuthTokenResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -8040,6 +8174,14 @@ func (r GetOAuthTokenResponse) StatusCode() int {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetOAuthTokenResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
 }
 
 type GetOrdersResponse struct {
@@ -8063,6 +8205,14 @@ func (r GetOrdersResponse) StatusCode() int {
 	return 0
 }
 
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetOrdersResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
 type UpdateResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -8082,6 +8232,14 @@ func (r UpdateResponse) StatusCode() int {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r UpdateResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
 }
 
 type CreateOrderResponse struct {
@@ -8105,6 +8263,14 @@ func (r CreateOrderResponse) StatusCode() int {
 	return 0
 }
 
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r CreateOrderResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
 type GetIntakesResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -8124,6 +8290,14 @@ func (r GetIntakesResponse) StatusCode() int {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetIntakesResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
 }
 
 type DeleteResponse struct {
@@ -8147,6 +8321,14 @@ func (r DeleteResponse) StatusCode() int {
 	return 0
 }
 
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r DeleteResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
 type GetOrderResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -8166,6 +8348,14 @@ func (r GetOrderResponse) StatusCode() int {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetOrderResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
 }
 
 type ClientReturnResponse struct {
@@ -8189,6 +8379,14 @@ func (r ClientReturnResponse) StatusCode() int {
 	return 0
 }
 
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r ClientReturnResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
 type RefuseResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -8208,6 +8406,14 @@ func (r RefuseResponse) StatusCode() int {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r RefuseResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
 }
 
 type GetPassportResponse struct {
@@ -8231,6 +8437,14 @@ func (r GetPassportResponse) StatusCode() int {
 	return 0
 }
 
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetPassportResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
 type GetPaymentResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -8250,6 +8464,14 @@ func (r GetPaymentResponse) StatusCode() int {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetPaymentResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
 }
 
 type GetReadyOrdersResponse struct {
@@ -8273,6 +8495,14 @@ func (r GetReadyOrdersResponse) StatusCode() int {
 	return 0
 }
 
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetReadyOrdersResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
 type RegisterResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -8292,6 +8522,14 @@ func (r RegisterResponse) StatusCode() int {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r RegisterResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
 }
 
 type GetPrealertResponse struct {
@@ -8315,6 +8553,14 @@ func (r GetPrealertResponse) StatusCode() int {
 	return 0
 }
 
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetPrealertResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
 type BarcodePrintResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -8334,6 +8580,14 @@ func (r BarcodePrintResponse) StatusCode() int {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r BarcodePrintResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
 }
 
 type BarcodeGetResponse struct {
@@ -8357,6 +8611,14 @@ func (r BarcodeGetResponse) StatusCode() int {
 	return 0
 }
 
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r BarcodeGetResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
 type BarcodeDownloadResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -8376,6 +8638,14 @@ func (r BarcodeDownloadResponse) StatusCode() int {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r BarcodeDownloadResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
 }
 
 type WaybillPrintResponse struct {
@@ -8399,6 +8669,14 @@ func (r WaybillPrintResponse) StatusCode() int {
 	return 0
 }
 
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r WaybillPrintResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
 type WaybillGetResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -8418,6 +8696,14 @@ func (r WaybillGetResponse) StatusCode() int {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r WaybillGetResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
 }
 
 type WaybillDownloadResponse struct {
@@ -8441,6 +8727,14 @@ func (r WaybillDownloadResponse) StatusCode() int {
 	return 0
 }
 
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r WaybillDownloadResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
 type GetRegistriesResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -8460,6 +8754,14 @@ func (r GetRegistriesResponse) StatusCode() int {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetRegistriesResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
 }
 
 type CheckAvailabilityResponse struct {
@@ -8483,6 +8785,14 @@ func (r CheckAvailabilityResponse) StatusCode() int {
 	return 0
 }
 
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r CheckAvailabilityResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
 type GetAllResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -8502,6 +8812,14 @@ func (r GetAllResponse) StatusCode() int {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetAllResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
 }
 
 type CreateV2WebhooksResponse struct {
@@ -8525,6 +8843,14 @@ func (r CreateV2WebhooksResponse) StatusCode() int {
 	return 0
 }
 
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r CreateV2WebhooksResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
 type DeleteByIdResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -8546,6 +8872,14 @@ func (r DeleteByIdResponse) StatusCode() int {
 	return 0
 }
 
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r DeleteByIdResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
 type GetByIdResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -8565,6 +8899,14 @@ func (r GetByIdResponse) StatusCode() int {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetByIdResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
 }
 
 // AvailableTariffsWithResponse request returning *AvailableTariffsResponse

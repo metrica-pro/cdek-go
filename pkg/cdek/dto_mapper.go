@@ -84,11 +84,11 @@ func (m *dtoMapper) fromCDEKCalculatorResponse(data []byte) (*CostResponse, erro
 		if sum, ok := tariffMap["delivery_sum"].(float64); ok {
 			tariff.DeliverySum = sum
 		}
-		if min, ok := tariffMap["period_min"].(float64); ok {
-			tariff.PeriodMin = int(min)
+		if periodMin, ok := tariffMap["period_min"].(float64); ok {
+			tariff.PeriodMin = int(periodMin)
 		}
-		if max, ok := tariffMap["period_max"].(float64); ok {
-			tariff.PeriodMax = int(max)
+		if periodMax, ok := tariffMap["period_max"].(float64); ok {
+			tariff.PeriodMax = int(periodMax)
 		}
 
 		tariffs = append(tariffs, tariff)

@@ -186,7 +186,7 @@ func TestAuthenticatedClient_Do(t *testing.T) {
 		ctx := context.Background()
 
 		// Do() попытается получить токен, что не удастся с fake credentials
-		_, err := client.Do(ctx, "GET", "/test", nil)
+		_, err := client.Do(ctx, "GET", "/test", nil) //nolint:bodyclose
 		if err == nil {
 			t.Error("Do() should return error when GetToken fails")
 		}
