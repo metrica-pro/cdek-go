@@ -32,7 +32,7 @@ build: fmt
 
 .PHONY: codegen
 codegen:
-	oapi-codegen -config oapi-codegen-config.yaml cdek-api.yaml
+	oapi-codegen -config oapi-codegen-config.yaml api/cdek-api.yaml
 
 .PHONY: security
 security:

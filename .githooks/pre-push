@@ -84,7 +84,7 @@ if command -v oapi-codegen >/dev/null 2>&1 && [ -f oapi-codegen-config.yaml ]; t
     run_step "oapi-codegen drift" sh -c '
         SNAP=$(mktemp)
         cp pkg/cdek/client.go "$SNAP"
-        oapi-codegen -config oapi-codegen-config.yaml cdek-api.yaml >/dev/null 2>&1
+        oapi-codegen -config oapi-codegen-config.yaml api/cdek-api.yaml >/dev/null 2>&1
         if ! cmp -s "$SNAP" pkg/cdek/client.go; then
             cp "$SNAP" pkg/cdek/client.go
             rm -f "$SNAP"

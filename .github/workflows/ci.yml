@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 env:
-  GO_VERSION: "1.26.3"
+  GO_VERSION: "1.26.4"
 
 jobs:
   lint:
@@ -52,7 +52,7 @@ jobs:
           go-version: ${{ env.GO_VERSION }}
       # Pin version — @latest drifts the generator stamp on every PR
       - run: go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@v2.7.1
-      - run: oapi-codegen -config oapi-codegen-config.yaml cdek-api.yaml
+      - run: oapi-codegen -config oapi-codegen-config.yaml api/cdek-api.yaml
       - run: git diff --exit-code -- pkg/cdek/client.go
 
   security:

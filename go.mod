@@ -1,6 +1,6 @@
 module github.com/metrica-pro/cdek-go
 
-go 1.26.0
+go 1.26.4
 
 require (
 	github.com/oapi-codegen/runtime v1.1.2

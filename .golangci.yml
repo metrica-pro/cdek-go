@@ -2,7 +2,7 @@ version: "2"
 
 run:
   timeout: 5m
-  go: "1.26"
+  go: "1.26.4"
 
 linters:
   enable:
@@ -20,15 +20,16 @@ linters:
 
 issues:
   max-same-issues: 5
-  exclude-rules:
-    # Generated file: oapi-codegen output
-    - path: "pkg/cdek/client\\.go"
-      linters:
-        - errcheck
-        - gosec
-        - revive
-        - unused
-    - path: "_test\\.go"
-      linters:
-        - errcheck
-        - gosec
+  exclusions:
+    rules:
+      # Generated file: oapi-codegen output
+      - path: "pkg/cdek/client\\.go"
+        linters:
+          - errcheck
+          - gosec
+          - revive
+          - unused
+      - path: "_test\\.go"
+        linters:
+          - errcheck
+          - gosec
