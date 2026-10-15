@@ -1,0 +1,39 @@
+{
+  "entity": {
+    "uuid": "00000000-0000-4000-8000-000000000010",
+    "type": 1,
+    "tariff_code": 136,
+    "statuses": [
+      {
+        "code": "CREATED",
+        "name": "Создан",
+        "date_time": "2026-10-15T11:53:43+0000"
+      }
+    ]
+  },
+  "related_entities": [],
+  "requests": [
+    {
+      "request_uuid": "00000000-0000-4000-8000-000000000011",
+      "type": "CREATE",
+      "date_time": "2026-10-15T11:53:42+0000",
+      "state": "INVALID",
+      "errors": [
+        {
+          "code": "error_validate_receiver_delivery_point_is_empty",
+          "message": "Не задан офис получателя"
+        },
+        {
+          "code": "error_validate_tariff_requires_pvz",
+          "message": "Тариф требует доставки до ПВЗ"
+        }
+      ]
+    },
+    {
+      "request_uuid": "00000000-0000-4000-8000-000000000012",
+      "type": "UPDATE",
+      "date_time": "2026-10-15T12:00:00+0000",
+      "state": "SUCCESSFUL"
+    }
+  ]
+}

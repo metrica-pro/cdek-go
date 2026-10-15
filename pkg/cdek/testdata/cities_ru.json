@@ -1,0 +1,34 @@
+[
+  {
+    "city": "Усинск",
+    "city_uuid": "00000000-0000-4000-8000-000000000029",
+    "code": 5,
+    "country": "Россия",
+    "country_code": "RU",
+    "fias_guid": "00000000-0000-4000-8000-000000000030",
+    "fias_region_guid": "00000000-0000-4000-8000-000000000028",
+    "latitude": 65.994148,
+    "longitude": 57.55701,
+    "payment_limit": -1,
+    "region": "Республика Коми",
+    "region_code": 1,
+    "sub_region": "городской округ Усинск",
+    "time_zone": "Europe/Moscow"
+  },
+  {
+    "city": "Алтайское",
+    "city_uuid": "00000000-0000-4000-8000-000000000032",
+    "code": 6,
+    "country": "Россия",
+    "country_code": "RU",
+    "fias_guid": "00000000-0000-4000-8000-000000000033",
+    "fias_region_guid": "00000000-0000-4000-8000-000000000031",
+    "latitude": 51.952237,
+    "longitude": 85.338182,
+    "payment_limit": -1,
+    "region": "Алтайский край",
+    "region_code": 2,
+    "sub_region": "Алтайский район",
+    "time_zone": "Asia/Barnaul"
+  }
+]

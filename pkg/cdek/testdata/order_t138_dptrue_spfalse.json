@@ -1,0 +1,253 @@
+{
+  "entity": {
+    "calls": {},
+    "cdek_number": "10000000001",
+    "comment": "REDACTED",
+    "delivery_date": "2026-05-07",
+    "delivery_detail": {
+      "date": "2026-05-07",
+      "delivery_discount_percent": 0,
+      "delivery_discount_sum": 0,
+      "delivery_sum": 1760,
+      "delivery_vat_rate": 22,
+      "delivery_vat_sum": 387.2,
+      "payment_info": [],
+      "payment_sum": 0,
+      "recipient_name": "REDACTED",
+      "total_sum": 2238.7
+    },
+    "delivery_mode": "2",
+    "delivery_point": "RZN10",
+    "delivery_recipient_cost": {
+      "value": 0
+    },
+    "from_location": {
+      "address": "REDACTED",
+      "city": "Москва",
+      "city_uuid": "00000000-0000-4000-8000-000000000001",
+      "code": 44,
+      "country": "Россия",
+      "country_code": "RU",
+      "fias_guid": "00000000-0000-4000-8000-000000000017",
+      "latitude": 55.75322,
+      "longitude": 37.622513,
+      "region": "Москва",
+      "region_code": 81,
+      "sub_region": "Москва"
+    },
+    "has_reverse_order": false,
+    "is_client_return": false,
+    "is_return": false,
+    "is_reverse": false,
+    "items_cost_currency": "RUB",
+    "keep_free_until": "2026-05-08T20:59:59Z",
+    "number": "fb-461862857523581",
+    "packages": [
+      {
+        "barcode": "000706939201",
+        "comment": "REDACTED",
+        "height": 20,
+        "items": [
+          {
+            "amount": 1,
+            "cost": 10000,
+            "delivery_amount": 1,
+            "excise": false,
+            "name": "REDACTED",
+            "payment": {
+              "value": 0
+            },
+            "return_item_detail": {},
+            "seller": {},
+            "ware_key": "0",
+            "weight": 20000,
+            "weight_gross": 20000
+          }
+        ],
+        "length": 60,
+        "number": "1",
+        "package_id": "00000000-0000-4000-8000-000000000023",
+        "weight": 20000,
+        "weight_calc": 20000,
+        "weight_volume": 12000,
+        "width": 50
+      }
+    ],
+    "planned_delivery_date": "2026-05-03",
+    "recipient": {
+      "company": "REDACTED",
+      "name": "REDACTED",
+      "passport_requirements_satisfied": false,
+      "phones": [
+        {
+          "number": "+70000000000"
+        }
+      ]
+    },
+    "recipient_currency": "RUB",
+    "seller": {
+      "name": "REDACTED"
+    },
+    "sender": {
+      "company": "REDACTED",
+      "name": "REDACTED",
+      "passport_requirements_satisfied": false,
+      "phones": [
+        {
+          "number": "+70000000000"
+        },
+        {
+          "number": "+70000000000"
+        }
+      ]
+    },
+    "services": [
+      {
+        "code": "INSURANCE",
+        "discount_percent": 0,
+        "discount_sum": 0,
+        "parameter": "10000",
+        "sum": 75,
+        "total_sum": 91.5,
+        "vat_rate": 22,
+        "vat_sum": 16.5
+      }
+    ],
+    "statuses": [
+      {
+        "city": "Рязань",
+        "city_uuid": "00000000-0000-4000-8000-000000000022",
+        "code": "DELIVERED",
+        "date_time": "2026-05-07T07:19:14+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Рязань",
+        "city_uuid": "00000000-0000-4000-8000-000000000022",
+        "code": "ACCEPTED_AT_PICK_UP_POINT",
+        "date_time": "2026-05-01T13:40:00+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Рязань",
+        "city_uuid": "00000000-0000-4000-8000-000000000022",
+        "code": "ACCEPTED_IN_RECIPIENT_CITY",
+        "date_time": "2026-05-01T13:35:11+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Рязань",
+        "city_uuid": "00000000-0000-4000-8000-000000000022",
+        "code": "SENT_TO_RECIPIENT_CITY",
+        "date_time": "2026-05-01T07:58:26+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Рязань",
+        "city_uuid": "00000000-0000-4000-8000-000000000022",
+        "code": "TAKEN_BY_TRANSPORTER_FROM_TRANSIT_CITY",
+        "date_time": "2026-05-01T07:58:19+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Рязань",
+        "city_uuid": "00000000-0000-4000-8000-000000000022",
+        "code": "READY_FOR_SHIPMENT_IN_TRANSIT_CITY",
+        "date_time": "2026-05-01T06:59:40+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Рязань",
+        "city_uuid": "00000000-0000-4000-8000-000000000022",
+        "code": "ACCEPTED_AT_TRANSIT_WAREHOUSE",
+        "date_time": "2026-05-01T06:59:27+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Рязань",
+        "city_uuid": "00000000-0000-4000-8000-000000000022",
+        "code": "ACCEPTED_IN_TRANSIT_CITY",
+        "date_time": "2026-05-01T02:34:41+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Москва",
+        "city_uuid": "00000000-0000-4000-8000-000000000001",
+        "code": "SENT_TO_TRANSIT_CITY",
+        "date_time": "2026-04-30T22:58:35+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Москва",
+        "city_uuid": "00000000-0000-4000-8000-000000000001",
+        "code": "TAKEN_BY_TRANSPORTER_FROM_SENDER_CITY",
+        "date_time": "2026-04-30T22:27:02+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Москва",
+        "city_uuid": "00000000-0000-4000-8000-000000000001",
+        "code": "READY_FOR_SHIPMENT_IN_SENDER_CITY",
+        "date_time": "2026-04-30T18:07:17+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Москва",
+        "city_uuid": "00000000-0000-4000-8000-000000000001",
+        "code": "RECEIVED_AT_SHIPMENT_WAREHOUSE",
+        "date_time": "2026-04-30T18:03:45+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Офис СДЭК",
+        "code": "CREATED",
+        "date_time": "2026-04-29T14:00:39+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Офис СДЭК",
+        "code": "ACCEPTED",
+        "date_time": "2026-04-29T14:00:38+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      }
+    ],
+    "tariff_code": 138,
+    "to_location": {
+      "address": "REDACTED",
+      "city": "Рязань",
+      "city_uuid": "00000000-0000-4000-8000-000000000022",
+      "code": 159,
+      "country": "Россия",
+      "country_code": "RU",
+      "latitude": 54.616627,
+      "longitude": 39.759003,
+      "region": "Рязанская область",
+      "region_code": 41
+    },
+    "type": 1,
+    "uuid": "00000000-0000-4000-8000-000000000024"
+  },
+  "related_entities": [
+    {
+      "create_time": "2026-05-06T19:02:03+0000",
+      "date": "2026-05-25",
+      "type": "delivery",
+      "uuid": "00000000-0000-4000-8000-000000000025"
+    }
+  ],
+  "requests": []
+}

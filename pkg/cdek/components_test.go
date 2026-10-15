@@ -3,6 +3,7 @@ package cdek
 import (
 	"bytes"
 	"context"
+	"errors"
 	"io"
 	"net/http"
 	"testing"
@@ -251,6 +252,98 @@ func TestOrderValidator(t *testing.T) {
 		err := validator.validate(req)
 		if err == nil {
 			t.Error("Expected error for empty packages")
+		}
+	})
+
+	// items обязательны только для type=1 (интернет-магазин); type=2 (доставка) — опциональны
+	t.Run("delivery without items is valid", func(t *testing.T) {
+		req := baseOrderRequest()
+		req.Type = "delivery"
+		req.Packages[0].Items = nil
+		if err := validator.validate(req); err != nil {
+			t.Errorf("Expected no error for delivery without items, got: %v", err)
+		}
+	})
+
+	t.Run("delivery by code 2 without items is valid", func(t *testing.T) {
+		req := baseOrderRequest()
+		req.Type = "2"
+		req.Packages[0].Items = nil
+		if err := validator.validate(req); err != nil {
+			t.Errorf("Expected no error for type 2 without items, got: %v", err)
+		}
+	})
+
+	t.Run("online_store without items is error", func(t *testing.T) {
+		req := baseOrderRequest()
+		req.Packages[0].Items = nil
+		err := validator.validate(req)
+		if err == nil {
+			t.Error("Expected error for online_store without items")
+		}
+	})
+
+	t.Run("delivery with items still validates them", func(t *testing.T) {
+		req := baseOrderRequest()
+		req.Type = "delivery"
+		req.Packages[0].Items[0].Name = ""
+		err := validator.validate(req)
+		if err == nil {
+			t.Error("Expected error for empty item name in delivery order")
+		}
+	})
+
+	// XOR: код ПВЗ и адрес одной стороны — конфликт; адрес с одной стороны и ПВЗ с другой — валидно
+	t.Run("shipment_point with from_location is conflict", func(t *testing.T) {
+		req := baseOrderRequest()
+		req.ShipmentPoint = ptrString("MSK109")
+		req.FromLocation = Location{Code: ptrInt32(44)}
+		err := validator.validate(req)
+		if err == nil {
+			t.Error("Expected error for shipment_point + from_location")
+		}
+		if !errors.Is(err, ErrInvalidRequest) {
+			t.Errorf("Expected ErrInvalidRequest wrap, got: %v", err)
+		}
+	})
+
+	t.Run("delivery_point with to_location is conflict", func(t *testing.T) {
+		req := baseOrderRequest()
+		req.DeliveryPoint = ptrString("SPB12")
+		req.ToLocation = Location{Code: ptrInt32(137)}
+		err := validator.validate(req)
+		if err == nil {
+			t.Error("Expected error for delivery_point + to_location")
+		}
+		if !errors.Is(err, ErrInvalidRequest) {
+			t.Errorf("Expected ErrInvalidRequest wrap, got: %v", err)
+		}
+	})
+
+	t.Run("empty point code does not conflict with location", func(t *testing.T) {
+		req := baseOrderRequest()
+		req.DeliveryPoint = ptrString("")
+		req.ToLocation = Location{Code: ptrInt32(137)}
+		if err := validator.validate(req); err != nil {
+			t.Errorf("Expected no error for empty point code + location, got: %v", err)
+		}
+	})
+
+	t.Run("mixed modes are valid", func(t *testing.T) {
+		// дверь-склад: from_location + delivery_point
+		req := baseOrderRequest()
+		req.FromLocation = Location{Code: ptrInt32(44)}
+		req.DeliveryPoint = ptrString("SPB12")
+		if err := validator.validate(req); err != nil {
+			t.Errorf("Expected no error for from_location + delivery_point, got: %v", err)
+		}
+
+		// склад-дверь: shipment_point + to_location
+		req = baseOrderRequest()
+		req.ShipmentPoint = ptrString("MSK109")
+		req.ToLocation = Location{Code: ptrInt32(137), Address: ptrString("Невский пр-т, 1")}
+		if err := validator.validate(req); err != nil {
+			t.Errorf("Expected no error for shipment_point + to_location, got: %v", err)
 		}
 	})
 }

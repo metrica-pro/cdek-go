@@ -101,6 +101,10 @@ cost, err := service.CalculateCost(ctx, &cdek.CostRequest{
 **Физическое лицо (с паспортом):**
 
 ```go
+passportSeries, passportNumber := "1234", "567890"
+recipientEmail := "test@example.com"
+fromCode, toCode := int32(44), int32(137) // Москва, СПб
+
 order, err := service.CreateOrder(ctx, &cdek.OrderRequest{
     Type:       "1", // интернет-магазин
     TariffCode: 136,
@@ -109,21 +113,21 @@ order, err := service.CreateOrder(ctx, &cdek.OrderRequest{
             Name:   "Иван Иванов",
             Phones: []cdek.Phone{{Number: "+79001234567"}},
         },
-        PassportSeries: ptrString("1234"),
-        PassportNumber: ptrString("567890"),
+        PassportSeries: &passportSeries,
+        PassportNumber: &passportNumber,
     },
     Recipient: cdek.Recipient{
         Contact: cdek.Contact{
-            Name:   "Петр Петров",
-            Email:  ptrString("test@example.com"),
+            Name:  "Петр Петров",
+            Email: &recipientEmail,
             Phones: []cdek.Phone{{Number: "+79007654321"}},
         },
     },
     FromLocation: cdek.Location{
-        Code: ptrInt32(44), // Москва
+        Code: &fromCode,
     },
     ToLocation: cdek.Location{
-        Code: ptrInt32(137), // СПб
+        Code: &toCode,
     },
     Packages: []cdek.OrderPackage{
         {
@@ -146,25 +150,29 @@ order, err := service.CreateOrder(ctx, &cdek.OrderRequest{
 **Юридическое лицо (с ИНН):**
 
 ```go
+senderCompany, senderTIN := "ООО Отправитель", "7707083893" // ИНН 10 цифр (юрлицо) или 12 (ИП)
+recipientCompany, recipientTIN := "ООО Получатель", "7709033880"
+recipientEmail := "contact@company.ru"
+
 order, err := service.CreateOrder(ctx, &cdek.OrderRequest{
     Type:       "1",
     TariffCode: 136,
     Sender: cdek.Recipient{
         Contact: cdek.Contact{
-            Company: ptrString("ООО Отправитель"),
+            Company: &senderCompany,
             Name:    "Иван Иванов", // Контактное лицо
             Phones:  []cdek.Phone{{Number: "+79001234567"}},
         },
-        TIN: ptrString("7707083893"), // ИНН 10 цифр (юрлицо) или 12 (ИП)
+        TIN: &senderTIN,
     },
     Recipient: cdek.Recipient{
         Contact: cdek.Contact{
-            Company: ptrString("ООО Получатель"),
+            Company: &recipientCompany,
             Name:    "Петр Петров", // Контактное лицо
-            Email:   ptrString("contact@company.ru"),
+            Email:   &recipientEmail,
             Phones:  []cdek.Phone{{Number: "+79007654321"}},
         },
-        TIN: ptrString("7709033880"), // ИНН получателя
+        TIN: &recipientTIN, // ИНН получателя
     },
     // ... остальные поля
 })
@@ -173,16 +181,21 @@ order, err := service.CreateOrder(ctx, &cdek.OrderRequest{
 **Интернет-магазин с третьим лицом (Seller):**
 
 ```go
+marketplaceCompany, marketplaceTIN := "ООО Маркетплейс", "7707083893"
+sellerName, sellerINN := "ИП Настоящий Продавец", "123456789012" // ИНН продавца
+sellerPhone, sellerAddress := "+79991234567", "Москва, ул. Продавца, 1"
+sellerOwnershipForm := 1 // Форма собственности
+
 order, err := service.CreateOrder(ctx, &cdek.OrderRequest{
     Type:       "1", // обязательно "1" для интернет-магазина
     TariffCode: 136,
     Sender: cdek.Recipient{
         Contact: cdek.Contact{
-            Company: ptrString("ООО Маркетплейс"),
+            Company: &marketplaceCompany,
             Name:    "Служба доставки",
             Phones:  []cdek.Phone{{Number: "+74951234567"}},
         },
-        TIN: ptrString("7707083893"),
+        TIN: &marketplaceTIN,
     },
     Recipient: cdek.Recipient{
         Contact: cdek.Contact{
@@ -191,15 +204,54 @@ order, err := service.CreateOrder(ctx, &cdek.OrderRequest{
         },
     },
     Seller: &cdek.Seller{ // Истинный продавец (третье лицо)
-        Name:          ptrString("ИП Настоящий Продавец"),
-        INN:           ptrString("123456789012"), // ИНН продавца
-        Phone:         ptrString("+79991234567"),
-        OwnershipForm: ptrInt(1), // Форма собственности
-        Address:       ptrString("Москва, ул. Продавца, 1"),
+        Name:          &sellerName,
+        INN:           &sellerINN,
+        Phone:         &sellerPhone,
+        OwnershipForm: &sellerOwnershipForm,
+        Address:       &sellerAddress,
     },
     // ... остальные поля
 })
 ```
+
+**Доставка в ПВЗ или между ПВЗ:**
+
+```go
+fromCode := int32(44)     // Москва (адрес курьером)
+deliveryPoint := "SPB12"  // код ПВЗ из ListDeliveryPoints
+
+// До пункта выдачи: DeliveryPoint задает сторону получателя.
+// Одновременная передача DeliveryPoint и ToLocation — ошибка ErrInvalidRequest (XOR по CDEK)
+order, err := service.CreateOrder(ctx, &cdek.OrderRequest{
+    Type:       "1",
+    TariffCode: 136, // тариф "склад-склад" или "дверь-склад"
+    Recipient: cdek.Recipient{
+        Contact: cdek.Contact{
+            Name:   "Петр Петров",
+            Phones: []cdek.Phone{{Number: "+79007654321"}},
+        },
+    },
+    FromLocation:  cdek.Location{Code: &fromCode},
+    DeliveryPoint: &deliveryPoint,
+    Packages:      /* как выше */,
+})
+
+// ПВЗ → ПВЗ: оба пункта, адресные блоки не указываются
+shipmentPoint := "MSK109" // сдача отправителем в ПВЗ
+order, err = service.CreateOrder(ctx, &cdek.OrderRequest{
+    Type:          "1",
+    TariffCode:    136,
+    Recipient:     /* как выше */,
+    ShipmentPoint: &shipmentPoint,
+    DeliveryPoint: &deliveryPoint,
+    Packages:      /* как выше */,
+})
+```
+
+`ShipmentPoint`/`DeliveryPoint` работают и в `UpdateOrder`. Код ПВЗ и адрес одной
+стороны взаимоисключающие: `shipment_point`+`from_location` или `delivery_point`+`to_location`
+в одном запросе — ошибка `ErrInvalidRequest` (CDEK их не принимает). Адрес с одной стороны
+и ПВЗ с другой (например, `FromLocation` + `DeliveryPoint` для «дверь-склад») — валидно.
 
 #### 3. GetOrder - Получение информации о заказе
 
@@ -210,21 +262,42 @@ fmt.Printf("Получатель: %s (%s)\n", orderInfo.Recipient.Name, *orderIn
 if orderInfo.Recipient.TIN != nil {
     fmt.Printf("ИНН: %s\n", *orderInfo.Recipient.TIN)
 }
+if orderInfo.DeliveryPoint != "" {
+    fmt.Printf("Доставка в ПВЗ: %s\n", orderInfo.DeliveryPoint)
+}
 ```
 
 #### 4. UpdateOrder - Обновление заказа
 
+По спеке CDEK `OrderUpdateRequestDto` требует `type` и `recipient` — передавайте их в каждом PATCH.
+
 ```go
+recipientCompany, recipientTIN := "ООО Новая Компания", "7709033880"
+
 updated, err := service.UpdateOrder(ctx, &cdek.UpdateOrderRequest{
     OrderUUID: orderUUID,
+    Type:      "1", // как в OrderRequest.Type ("1"/"online_store" или "2"/"delivery")
     Recipient: &cdek.Recipient{
         Contact: cdek.Contact{
-            Company: ptrString("ООО Новая Компания"),
+            Company: &recipientCompany,
             Name:    "Новое Контактное Лицо",
             Phones:  []cdek.Phone{{Number: "+79998887766"}},
         },
-        TIN: ptrString("7709033880"),
+        TIN: &recipientTIN,
     },
+})
+```
+
+**Перевод заказа на другой ПВЗ:**
+
+```go
+deliveryPoint := "SPB34"
+
+updated, err := service.UpdateOrder(ctx, &cdek.UpdateOrderRequest{
+    OrderUUID: orderUUID,
+    Type:      "1", // по спеке PATCH требует type и recipient
+    Recipient: &cdek.Recipient{ /* как выше */ },
+    DeliveryPoint: &deliveryPoint, // ToLocation в этом же запросе — ошибка (XOR)
 })
 ```
 
@@ -291,32 +364,51 @@ os.WriteFile("waybill.pdf", pdfData, 0644)
 #### 11. ListDeliveryPoints - Список ПВЗ
 
 ```go
+haveCashless, allowedCOD := true, true
+weightMax := int32(15) // кг
+
 points, err := service.ListDeliveryPoints(ctx, &cdek.DeliveryPointsRequest{
-    CityCode: "137", // Санкт-Петербург
-    Type:     "PVZ", // или "POSTAMAT"
+    CityCode:     "137",         // Санкт-Петербург
+    Type:         "PVZ",         // или "POSTAMAT", "ALL"
+    HaveCashless: &haveCashless, // безналичная оплата
+    AllowedCOD:   &allowedCOD,   // наложенный платеж
+    WeightMax:    &weightMax,    // максимальный вес приема/выдачи, кг
 })
 for _, p := range points {
-    fmt.Printf("%s: %s\n", p.Code, p.Location.Address)
-    fmt.Printf("  Режим работы: %s\n", p.WorkTime)
-    fmt.Printf("  Координаты: %.6f, %.6f\n", p.Location.Latitude, p.Location.Longitude)
+    fmt.Printf("%s: %s\n", p.Code, p.Location.AddressFull)
+    fmt.Printf("  Наличные/безнал: %v/%v, наложенный платеж: %v\n",
+        p.HaveCash, p.HaveCashless, p.AllowedCOD)
+    if p.WeightMax != nil { // nil - поля нет в ответе
+        fmt.Printf("  Максимальный вес: %.0f кг\n", *p.WeightMax)
+    }
 }
 ```
+
+Вес в фильтрах и ответе — килограммы. Query-параметры кодируются через `net/url.Values`
+(спецсимволы безопасны), `size`/`page` со значением <= 0 не отправляются. Полный набор фильтров:
+`code`, `country_code`, `region_code`, `postal_code`, `fias_guid`, `have_cashless`, `have_cash`,
+`allowed_cod`, `is_dressing_room`, `is_handout`, `is_reception`, `take_only`, `weight_max`,
+`weight_min`, `size`, `page`.
 
 #### 12. ListCities - Поиск городов
 
 ```go
+cityName, size := "Москва", 10
+
 cities, err := service.ListCities(ctx, &cdek.CitiesRequest{
-    City: ptrString("Москва"),
-    Size: ptrInt32(10),
+    City: &cityName,
+    Size: &size,
 })
 ```
 
 #### 13. ListRegions - Список регионов
 
 ```go
+countryCode, size := "RU", 50
+
 regions, err := service.ListRegions(ctx, &cdek.RegionsRequest{
-    CountryCodes: []string{"RU"},
-    Size:         ptrInt32(50),
+    CountryCode: &countryCode,
+    Size:        &size,
 })
 ```
 
@@ -325,18 +417,21 @@ regions, err := service.ListRegions(ctx, &cdek.RegionsRequest{
 #### 14. CreateIntake - Создание заявки на забор
 
 ```go
+intakeComment := "Звонить за час"
+intakeCityCode, intakeAddress := int32(44), "Москва, ул. Ленина, 1"
+
 intake, err := service.CreateIntake(ctx, &cdek.IntakeRequest{
     IntakeDate:     "2026-02-20",
     IntakeTimeFrom: "10:00",
     IntakeTimeTo:   "18:00",
-    Comment:        ptrString("Звонить за час"),
+    Comment:        &intakeComment,
     Sender: cdek.Contact{
         Name:   "Иван Иванов",
         Phones: []cdek.Phone{{Number: "+79001234567"}},
     },
     FromLocation: cdek.Location{
-        Code:    ptrInt32(44),
-        Address: ptrString("Москва, ул. Ленина, 1"),
+        Code:    &intakeCityCode,
+        Address: &intakeAddress,
     },
     Orders: []cdek.IntakeOrder{
         {OrderUUID: orderUUID},
@@ -369,12 +464,19 @@ webhook, err := service.CreateWebhook(ctx, &cdek.WebhookRequest{
 webhooks, err := service.ListWebhooks(ctx)
 ```
 
-## Вспомогательные функции
+## Опциональные поля-указатели
+
+Опциональные поля в запросах — указатели. Библиотека их не экспортирует:
+берите адрес локальной переменной, как в примерах выше.
 
 ```go
-func ptrString(s string) *string { return &s }
-func ptrInt32(i int32) *int32 { return &i }
-func ptrInt(i int) *int { return &i }
+cityName := "Москва"
+size := 10
+
+cities, _ := service.ListCities(ctx, &cdek.CitiesRequest{
+    City: &cityName,
+    Size: &size,
+})
 ```
 
 ## Мультиаккаунт режим

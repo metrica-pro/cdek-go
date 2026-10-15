@@ -84,9 +84,8 @@ const (
 	// URLProduction production URL
 	URLProduction = "https://api.cdek.ru"
 
-	// URLSandbox sandbox/test URL
-	// ВАЖНО: Используйте production URL (api.cdek.ru), т.к. api.edu.cdek.ru устарел
-	URLSandbox = "https://api.cdek.ru"
+	// URLSandbox тестовый контур СДЭК
+	URLSandbox = "https://api.edu.cdek.ru"
 )
 
 // DefaultConfig создает конфигурацию по умолчанию

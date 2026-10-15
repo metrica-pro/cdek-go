@@ -175,8 +175,8 @@ func TestConstants(t *testing.T) {
 	if URLProduction != "https://api.cdek.ru" {
 		t.Errorf("URLProduction = %v, want https://api.cdek.ru", URLProduction)
 	}
-	// URLSandbox теперь указывает на production, так как api.edu.cdek.ru устарел
-	if URLSandbox != "https://api.cdek.ru" {
-		t.Errorf("URLSandbox = %v, want https://api.cdek.ru", URLSandbox)
+	// URLSandbox — тестовый контур СДЭК
+	if URLSandbox != "https://api.edu.cdek.ru" {
+		t.Errorf("URLSandbox = %v, want https://api.edu.cdek.ru", URLSandbox)
 	}
 }

@@ -1,0 +1,356 @@
+{
+  "entity": {
+    "calls": {},
+    "cdek_number": "10000000001",
+    "delivery_date": "2026-06-23",
+    "delivery_detail": {
+      "date": "2026-06-23",
+      "delivery_discount_percent": 0,
+      "delivery_discount_sum": 0,
+      "delivery_sum": 455,
+      "delivery_vat_rate": 22,
+      "delivery_vat_sum": 100.1,
+      "payment_info": [],
+      "payment_sum": 0,
+      "recipient_name": "REDACTED",
+      "total_sum": 573.4
+    },
+    "delivery_mode": "3",
+    "delivery_point": "MSK1887",
+    "delivery_recipient_cost": {
+      "value": 0
+    },
+    "from_location": {
+      "city": "Москва",
+      "city_uuid": "00000000-0000-4000-8000-000000000001",
+      "code": 44,
+      "country": "Россия",
+      "country_code": "RU",
+      "latitude": 55.825836,
+      "longitude": 37.431531,
+      "region": "Москва",
+      "region_code": 81
+    },
+    "has_reverse_order": false,
+    "is_client_return": false,
+    "is_return": false,
+    "is_reverse": false,
+    "items_cost_currency": "RUB",
+    "keep_free_until": "2026-06-27T20:59:59Z",
+    "number": "fb-483064365188230",
+    "packages": [
+      {
+        "barcode": "000730303762",
+        "comment": "REDACTED",
+        "height": 20,
+        "items": [
+          {
+            "amount": 2,
+            "cost": 1000,
+            "delivery_amount": 2,
+            "excise": false,
+            "name": "REDACTED",
+            "payment": {
+              "value": 0
+            },
+            "return_item_detail": {},
+            "seller": {},
+            "ware_key": "1",
+            "weight": 1900,
+            "weight_gross": 1900
+          }
+        ],
+        "length": 32,
+        "number": "1",
+        "package_id": "00000000-0000-4000-8000-000000000021",
+        "weight": 3920,
+        "weight_calc": 3920,
+        "weight_volume": 2304,
+        "width": 18
+      }
+    ],
+    "planned_delivery_date": "2026-06-24",
+    "recipient": {
+      "company": "REDACTED",
+      "email": "REDACTED",
+      "name": "REDACTED",
+      "passport_requirements_satisfied": false,
+      "phones": [
+        {
+          "number": "+70000000000"
+        }
+      ]
+    },
+    "recipient_currency": "RUB",
+    "seller": {
+      "inn": "7709033880",
+      "name": "REDACTED",
+      "ownership_form": "137",
+      "phone": "+70000000000"
+    },
+    "sender": {
+      "company": "REDACTED",
+      "name": "REDACTED",
+      "passport_requirements_satisfied": false,
+      "phones": [
+        {
+          "number": "+70000000000"
+        }
+      ]
+    },
+    "services": [
+      {
+        "code": "INSURANCE",
+        "discount_percent": 0,
+        "discount_sum": 0,
+        "parameter": "2000.00",
+        "sum": 15,
+        "total_sum": 18.3,
+        "vat_rate": 22,
+        "vat_sum": 3.3
+      }
+    ],
+    "shipment_point": "MSK553",
+    "statuses": [
+      {
+        "city": "Москва",
+        "city_uuid": "00000000-0000-4000-8000-000000000001",
+        "code": "DELIVERED",
+        "date_time": "2026-06-23T13:21:37+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Москва",
+        "city_uuid": "00000000-0000-4000-8000-000000000001",
+        "code": "TAKEN_BY_COURIER",
+        "date_time": "2026-06-23T11:05:24+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Москва",
+        "city_uuid": "00000000-0000-4000-8000-000000000001",
+        "code": "ACCEPTED_AT_RECIPIENT_CITY_WAREHOUSE",
+        "date_time": "2026-06-23T10:53:25+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Москва",
+        "city_uuid": "00000000-0000-4000-8000-000000000001",
+        "code": "ACCEPTED_IN_RECIPIENT_CITY",
+        "date_time": "2026-06-23T10:52:44+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Москва",
+        "city_uuid": "00000000-0000-4000-8000-000000000001",
+        "code": "TAKEN_BY_TRANSPORTER_FROM_TRANSIT_CITY",
+        "date_time": "2026-06-23T08:54:28+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Москва",
+        "city_uuid": "00000000-0000-4000-8000-000000000001",
+        "code": "READY_FOR_SHIPMENT_IN_TRANSIT_CITY",
+        "date_time": "2026-06-23T07:12:52+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Москва",
+        "city_uuid": "00000000-0000-4000-8000-000000000001",
+        "code": "RETURNED_TO_TRANSIT_WAREHOUSE",
+        "date_time": "2026-06-22T19:29:25+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Москва",
+        "city_uuid": "00000000-0000-4000-8000-000000000001",
+        "code": "SENT_TO_TRANSIT_CITY",
+        "date_time": "2026-06-22T16:07:47+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Москва",
+        "city_uuid": "00000000-0000-4000-8000-000000000001",
+        "code": "TAKEN_BY_TRANSPORTER_FROM_TRANSIT_CITY",
+        "date_time": "2026-06-22T16:07:17+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Москва",
+        "city_uuid": "00000000-0000-4000-8000-000000000001",
+        "code": "READY_FOR_SHIPMENT_IN_TRANSIT_CITY",
+        "date_time": "2026-06-22T14:36:01+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Москва",
+        "city_uuid": "00000000-0000-4000-8000-000000000001",
+        "code": "ACCEPTED_AT_TRANSIT_WAREHOUSE",
+        "date_time": "2026-06-22T13:44:01+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Москва",
+        "city_uuid": "00000000-0000-4000-8000-000000000001",
+        "code": "ACCEPTED_AT_PICK_UP_POINT",
+        "date_time": "2026-06-20T06:53:02+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Москва",
+        "city_uuid": "00000000-0000-4000-8000-000000000001",
+        "code": "ACCEPTED_IN_RECIPIENT_CITY",
+        "date_time": "2026-06-20T06:46:03+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Москва",
+        "city_uuid": "00000000-0000-4000-8000-000000000001",
+        "code": "SENT_TO_RECIPIENT_CITY",
+        "date_time": "2026-06-20T05:10:31+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Москва",
+        "city_uuid": "00000000-0000-4000-8000-000000000001",
+        "code": "TAKEN_BY_TRANSPORTER_FROM_TRANSIT_CITY",
+        "date_time": "2026-06-20T05:08:53+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Москва",
+        "city_uuid": "00000000-0000-4000-8000-000000000001",
+        "code": "READY_FOR_SHIPMENT_IN_TRANSIT_CITY",
+        "date_time": "2026-06-20T03:10:35+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Москва",
+        "city_uuid": "00000000-0000-4000-8000-000000000001",
+        "code": "ACCEPTED_AT_TRANSIT_WAREHOUSE",
+        "date_time": "2026-06-20T01:55:48+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Москва",
+        "city_uuid": "00000000-0000-4000-8000-000000000001",
+        "code": "ACCEPTED_IN_TRANSIT_CITY",
+        "date_time": "2026-06-19T23:57:33+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Москва",
+        "city_uuid": "00000000-0000-4000-8000-000000000001",
+        "code": "SENT_TO_TRANSIT_CITY",
+        "date_time": "2026-06-19T22:52:43+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Москва",
+        "city_uuid": "00000000-0000-4000-8000-000000000001",
+        "code": "TAKEN_BY_TRANSPORTER_FROM_TRANSIT_CITY",
+        "date_time": "2026-06-19T20:11:04+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Москва",
+        "city_uuid": "00000000-0000-4000-8000-000000000001",
+        "code": "READY_FOR_SHIPMENT_IN_TRANSIT_CITY",
+        "date_time": "2026-06-19T18:57:36+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Москва",
+        "city_uuid": "00000000-0000-4000-8000-000000000001",
+        "code": "ACCEPTED_AT_TRANSIT_WAREHOUSE",
+        "date_time": "2026-06-19T17:57:54+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Москва",
+        "city_uuid": "00000000-0000-4000-8000-000000000001",
+        "code": "SENT_TO_TRANSIT_CITY",
+        "date_time": "2026-06-19T14:46:11+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Москва",
+        "city_uuid": "00000000-0000-4000-8000-000000000001",
+        "code": "TAKEN_BY_TRANSPORTER_FROM_SENDER_CITY",
+        "date_time": "2026-06-19T14:45:42+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Москва",
+        "city_uuid": "00000000-0000-4000-8000-000000000001",
+        "code": "READY_FOR_SHIPMENT_IN_SENDER_CITY",
+        "date_time": "2026-06-19T14:41:31+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Москва",
+        "city_uuid": "00000000-0000-4000-8000-000000000001",
+        "code": "RECEIVED_AT_SHIPMENT_WAREHOUSE",
+        "date_time": "2026-06-19T14:41:26+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Офис СДЭК",
+        "code": "CREATED",
+        "date_time": "2026-06-18T10:39:45+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Офис СДЭК",
+        "code": "ACCEPTED",
+        "date_time": "2026-06-18T10:39:44+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      }
+    ],
+    "tariff_code": 137,
+    "to_location": {
+      "address": "REDACTED",
+      "city": "Москва",
+      "city_uuid": "00000000-0000-4000-8000-000000000001",
+      "code": 44,
+      "country": "Россия",
+      "country_code": "RU",
+      "latitude": 55.695149,
+      "longitude": 37.454798,
+      "region": "Москва",
+      "region_code": 81
+    },
+    "type": 1,
+    "uuid": "00000000-0000-4000-8000-000000000020"
+  },
+  "related_entities": [],
+  "requests": []
+}

@@ -56,8 +56,8 @@ require (
    - Описание: "Интеграция для автоматизации доставок"
    - Redirect URL: (не требуется для Client Credentials flow)
 5. После создания получите:
-   - **Client ID** (например: `Gh2kvD9jFHpP9DiRxE343ViJWlMVeMsx`)
-   - **Client Secret** (например: `gq5itaXV6uD728jcaeFGRJadaC8xRXGs`)
+   - **Client ID** (например: `<your-client-id>`)
+   - **Client Secret** (например: `<your-client-secret>`)
 
 ### 3. Настройка прав доступа
 
@@ -658,8 +658,8 @@ groups:
 ❌ **Плохо:**
 ```go
 config := cdek.DefaultConfig(
-    "Gh2kvD9jFHpP9DiRxE343ViJWlMVeMsx",  // Хардкод в коде!
-    "gq5itaXV6uD728jcaeFGRJadaC8xRXGs",
+    "<your-client-id>",  // Хардкод в коде!
+    "<your-client-secret>",
 )
 ```
 

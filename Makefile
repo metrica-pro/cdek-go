@@ -1,5 +1,6 @@
 GO_VERSION ?= 1.26.3
 COVERAGE   := coverage.out
+COVER_THRESHOLD := 75
 
 .DEFAULT_GOAL := build
 
@@ -25,6 +26,15 @@ test-integration:
 coverage: test
 	go tool cover -func=$(COVERAGE) | tail -1
 	go tool cover -html=$(COVERAGE) -o coverage.html
+
+# cover: порог суммарного покрытия pkg/cdek (CI-гейт использует тот же порог)
+.PHONY: cover
+cover:
+	go test -count=1 -coverprofile=$(COVERAGE) ./pkg/...
+	@go tool cover -func=$(COVERAGE) | grep -E 'pkg/cdek/(service|dto_mapper)\.go:' || true
+	@total=$$(awk '$$1 ~ /\/pkg\/cdek\// { stmts += $$2; if ($$3 > 0) hit += $$2 } END { printf "%.1f", 100 * hit / stmts }' $(COVERAGE)); \
+	echo "pkg/cdek total: $${total}% (threshold $(COVER_THRESHOLD)%)"; \
+	awk -v threshold=$(COVER_THRESHOLD) -v pct="$${total}" 'BEGIN { if (pct < threshold) { printf "coverage %.1f%% is below threshold %d%%\n", pct, threshold; exit 1 } }'
 
 .PHONY: build
 build: fmt

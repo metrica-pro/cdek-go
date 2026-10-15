@@ -1,0 +1,272 @@
+{
+  "entity": {
+    "calls": {},
+    "cdek_number": "10000000001",
+    "delivery_detail": {
+      "delivery_discount_percent": 0,
+      "delivery_discount_sum": 0,
+      "delivery_sum": 530,
+      "delivery_vat_rate": 22,
+      "delivery_vat_sum": 116.6,
+      "payment_info": [],
+      "total_sum": 704.55
+    },
+    "delivery_mode": "4",
+    "delivery_point": "MSK553",
+    "delivery_recipient_cost": {},
+    "from_location": {
+      "city": "Таруса",
+      "city_uuid": "00000000-0000-4000-8000-000000000008",
+      "code": 1939,
+      "country": "Россия",
+      "country_code": "RU",
+      "latitude": 54.723195,
+      "longitude": 37.164417,
+      "region": "Калужская область",
+      "region_code": 33
+    },
+    "has_reverse_order": false,
+    "is_client_return": false,
+    "is_return": false,
+    "is_reverse": false,
+    "items_cost_currency": "RUB",
+    "keep_free_until": "2026-10-22T20:59:59Z",
+    "packages": [
+      {
+        "barcode": "000786470177",
+        "comment": "REDACTED",
+        "height": 1,
+        "length": 24,
+        "number": "[P09]12005424607",
+        "package_id": "00000000-0000-4000-8000-000000000006",
+        "weight": 150,
+        "weight_calc": 150,
+        "weight_volume": 106,
+        "width": 22
+      }
+    ],
+    "planned_delivery_date": "2026-10-17",
+    "recipient": {
+      "company": "REDACTED",
+      "name": "REDACTED",
+      "passport_requirements_satisfied": false,
+      "phones": [
+        {
+          "number": "+70000000000"
+        }
+      ]
+    },
+    "recipient_currency": "RUB",
+    "seller": {},
+    "sender": {
+      "company": "REDACTED",
+      "name": "REDACTED",
+      "passport_requirements_satisfied": false,
+      "phones": [
+        {
+          "number": "+70000000000"
+        }
+      ]
+    },
+    "services": [
+      {
+        "code": "GREEN_ENVELOPE_CDEK",
+        "discount_percent": 0,
+        "discount_sum": 0,
+        "parameter": "1",
+        "sum": 40,
+        "total_sum": 48.8,
+        "vat_rate": 22,
+        "vat_sum": 8.8
+      },
+      {
+        "code": "INSURANCE",
+        "discount_percent": 0,
+        "discount_sum": 0,
+        "parameter": "1000",
+        "sum": 7.5,
+        "total_sum": 9.15,
+        "vat_rate": 22,
+        "vat_sum": 1.65
+      }
+    ],
+    "shipment_point": "TAR8",
+    "statuses": [
+      {
+        "city": "Москва",
+        "city_uuid": "00000000-0000-4000-8000-000000000001",
+        "code": "ACCEPTED_AT_PICK_UP_POINT",
+        "date_time": "2026-10-15T07:24:35+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Москва",
+        "city_uuid": "00000000-0000-4000-8000-000000000001",
+        "code": "ACCEPTED_IN_RECIPIENT_CITY",
+        "date_time": "2026-10-15T07:20:15+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Москва",
+        "city_uuid": "00000000-0000-4000-8000-000000000001",
+        "code": "SENT_TO_RECIPIENT_CITY",
+        "date_time": "2026-10-15T05:16:09+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Москва",
+        "city_uuid": "00000000-0000-4000-8000-000000000001",
+        "code": "TAKEN_BY_TRANSPORTER_FROM_TRANSIT_CITY",
+        "date_time": "2026-10-15T05:15:31+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Москва",
+        "city_uuid": "00000000-0000-4000-8000-000000000001",
+        "code": "READY_FOR_SHIPMENT_IN_TRANSIT_CITY",
+        "date_time": "2026-10-15T04:35:34+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Москва",
+        "city_uuid": "00000000-0000-4000-8000-000000000001",
+        "code": "ACCEPTED_AT_TRANSIT_WAREHOUSE",
+        "date_time": "2026-10-15T04:10:12+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Москва",
+        "city_uuid": "00000000-0000-4000-8000-000000000001",
+        "code": "ACCEPTED_IN_TRANSIT_CITY",
+        "date_time": "2026-10-15T02:55:55+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Москва",
+        "city_uuid": "00000000-0000-4000-8000-000000000001",
+        "code": "SENT_TO_TRANSIT_CITY",
+        "date_time": "2026-10-15T02:00:48+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Москва",
+        "city_uuid": "00000000-0000-4000-8000-000000000001",
+        "code": "TAKEN_BY_TRANSPORTER_FROM_TRANSIT_CITY",
+        "date_time": "2026-10-15T00:30:12+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Москва",
+        "city_uuid": "00000000-0000-4000-8000-000000000001",
+        "code": "RETURNED_TO_TRANSIT_WAREHOUSE",
+        "date_time": "2026-10-14T21:33:06+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Москва",
+        "city_uuid": "00000000-0000-4000-8000-000000000001",
+        "code": "READY_FOR_SHIPMENT_IN_TRANSIT_CITY",
+        "date_time": "2026-10-14T21:32:41+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Москва",
+        "city_uuid": "00000000-0000-4000-8000-000000000001",
+        "code": "ACCEPTED_AT_TRANSIT_WAREHOUSE",
+        "date_time": "2026-10-14T21:15:08+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Серпухов",
+        "city_uuid": "00000000-0000-4000-8000-000000000007",
+        "code": "READY_FOR_SHIPMENT_IN_TRANSIT_CITY",
+        "date_time": "2026-10-14T13:48:46+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Серпухов",
+        "city_uuid": "00000000-0000-4000-8000-000000000007",
+        "code": "ACCEPTED_IN_TRANSIT_CITY",
+        "date_time": "2026-10-14T13:48:32+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Таруса",
+        "city_uuid": "00000000-0000-4000-8000-000000000008",
+        "code": "SENT_TO_TRANSIT_CITY",
+        "date_time": "2026-10-14T12:03:07+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Таруса",
+        "city_uuid": "00000000-0000-4000-8000-000000000008",
+        "code": "TAKEN_BY_TRANSPORTER_FROM_SENDER_CITY",
+        "date_time": "2026-10-14T10:03:44+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Таруса",
+        "city_uuid": "00000000-0000-4000-8000-000000000008",
+        "code": "READY_FOR_SHIPMENT_IN_SENDER_CITY",
+        "date_time": "2026-10-14T09:55:06+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Таруса",
+        "city_uuid": "00000000-0000-4000-8000-000000000008",
+        "code": "RECEIVED_AT_SHIPMENT_WAREHOUSE",
+        "date_time": "2026-10-13T14:25:11+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Офис СДЭК",
+        "code": "CREATED",
+        "date_time": "2026-10-13T09:31:42+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Офис СДЭК",
+        "code": "ACCEPTED",
+        "date_time": "2026-10-13T09:31:41+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      }
+    ],
+    "tariff_code": 483,
+    "to_location": {
+      "address": "REDACTED",
+      "city": "Москва",
+      "city_uuid": "00000000-0000-4000-8000-000000000001",
+      "code": 44,
+      "country": "Россия",
+      "country_code": "RU",
+      "latitude": 55.825836,
+      "longitude": 37.431531,
+      "region": "Москва",
+      "region_code": 81
+    },
+    "type": 2,
+    "uuid": "00000000-0000-4000-8000-000000000005"
+  },
+  "related_entities": [],
+  "requests": []
+}

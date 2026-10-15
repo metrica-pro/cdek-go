@@ -1,0 +1,23 @@
+{
+  "tariff_codes": [
+    {
+      "tariff_code": 136,
+      "tariff_name": "Экспресс склад-склад",
+      "tariff_description": "Доставка до ПВЗ",
+      "delivery_mode": 4,
+      "delivery_sum": 225,
+      "period_min": 1,
+      "period_max": 2,
+      "calendar": 0,
+      "weight_calc": 1
+    },
+    {
+      "tariff_code": 483,
+      "tariff_name": "Магазин склад-склад",
+      "delivery_mode": 4,
+      "delivery_sum": 530,
+      "period_min": 2,
+      "period_max": 3
+    }
+  ]
+}

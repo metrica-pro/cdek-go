@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/sony/gobreaker/v2"
@@ -306,22 +307,12 @@ func (s *Service) ListDeliveryPoints(ctx context.Context, req *DeliveryPointsReq
 
 	// Выполнение через Circuit Breaker
 	result, err := s.breaker.Execute(func() (interface{}, error) {
-		// Строим path с query parameters
+		// Строим query через url.Values: корректное кодирование спецсимволов,
+		// незаданные фильтры не отправляются
+		query := buildDeliveryPointsQuery(req)
 		path := "/v2/deliverypoints"
-		queryParts := []string{}
-
-		if req.CityCode != "" {
-			queryParts = append(queryParts, fmt.Sprintf("city_code=%s", req.CityCode))
-		}
-		if req.Type != "" {
-			queryParts = append(queryParts, fmt.Sprintf("type=%s", req.Type))
-		}
-
-		if len(queryParts) > 0 {
-			path += "?" + queryParts[0]
-			for i := 1; i < len(queryParts); i++ {
-				path += "&" + queryParts[i]
-			}
+		if encoded := query.Encode(); encoded != "" {
+			path += "?" + encoded
 		}
 
 		// Используем AuthenticatedClient.Do для автоматической авторизации
@@ -355,6 +346,76 @@ func (s *Service) ListDeliveryPoints(ctx context.Context, req *DeliveryPointsReq
 	s.logger.Info("list delivery points success", "points_count", len(points))
 
 	return points, nil
+}
+
+// boolParam01 кодирует bool в формате параметров CDEK API ("1"/"0")
+func boolParam01(v bool) string {
+	if v {
+		return "1"
+	}
+	return "0"
+}
+
+// buildDeliveryPointsQuery строит query-параметры для /v2/deliverypoints.
+// Пустые фильтры не включаются; кодирование выполняет url.Values.Encode
+func buildDeliveryPointsQuery(req *DeliveryPointsRequest) url.Values {
+	query := url.Values{}
+	if req.CityCode != "" {
+		query.Set("city_code", req.CityCode)
+	}
+	if req.Type != "" {
+		query.Set("type", req.Type)
+	}
+	if req.Code != "" {
+		query.Set("code", req.Code)
+	}
+	if req.CountryCode != "" {
+		query.Set("country_code", req.CountryCode)
+	}
+	if req.RegionCode != nil {
+		query.Set("region_code", strconv.FormatInt(int64(*req.RegionCode), 10))
+	}
+	if req.PostalCode != "" {
+		query.Set("postal_code", req.PostalCode)
+	}
+	if req.FiasGUID != "" {
+		query.Set("fias_guid", req.FiasGUID)
+	}
+	if req.HaveCashless != nil {
+		query.Set("have_cashless", boolParam01(*req.HaveCashless))
+	}
+	if req.HaveCash != nil {
+		query.Set("have_cash", boolParam01(*req.HaveCash))
+	}
+	if req.AllowedCOD != nil {
+		query.Set("allowed_cod", boolParam01(*req.AllowedCOD))
+	}
+	if req.IsDressingRoom != nil {
+		query.Set("is_dressing_room", boolParam01(*req.IsDressingRoom))
+	}
+	if req.IsHandout != nil {
+		query.Set("is_handout", boolParam01(*req.IsHandout))
+	}
+	if req.IsReception != nil {
+		query.Set("is_reception", boolParam01(*req.IsReception))
+	}
+	if req.TakeOnly != nil {
+		query.Set("take_only", boolParam01(*req.TakeOnly))
+	}
+	if req.WeightMax != nil {
+		query.Set("weight_max", strconv.FormatInt(int64(*req.WeightMax), 10))
+	}
+	if req.WeightMin != nil {
+		query.Set("weight_min", strconv.FormatInt(int64(*req.WeightMin), 10))
+	}
+	// Значения <= 0 бессмысленны для пагинации CDEK и не отправляются
+	if req.Size != nil && *req.Size > 0 {
+		query.Set("size", strconv.FormatInt(int64(*req.Size), 10))
+	}
+	if req.Page != nil && *req.Page > 0 {
+		query.Set("page", strconv.FormatInt(int64(*req.Page), 10))
+	}
+	return query
 }
 
 // PrintBarcode создает задание на печать этикеток (штрихкодов)

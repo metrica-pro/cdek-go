@@ -198,10 +198,25 @@ func (ov *orderValidator) validate(req *OrderRequest) error {
 		return fmt.Errorf("recipient.phones cannot be empty: %w", ErrInvalidRequest)
 	}
 
+	// XOR: код ПВЗ и адрес одной стороны маршрута взаимоисключающие (спека CDEK
+	// по delivery_mode). Адрес с одной стороны и ПВЗ с другой — валидные режимы
+	// (from_location + delivery_point, shipment_point + to_location)
+	if pointCode(req.ShipmentPoint) != "" && locationFilled(&req.FromLocation) {
+		return pointAddressConflictErr("shipment_point", "from_location", "sender")
+	}
+	if pointCode(req.DeliveryPoint) != "" && locationFilled(&req.ToLocation) {
+		return pointAddressConflictErr("delivery_point", "to_location", "recipient")
+	}
+
 	// Проверка упаковок
 	if len(req.Packages) == 0 {
 		return fmt.Errorf("packages cannot be empty: %w", ErrInvalidRequest)
 	}
+
+	// items обязательны только для интернет-магазинов (type=1, спека ItemRequestDto);
+	// для доставки (type=2) могут отсутствовать, заданные — валидируются одинаково.
+	// Габариты (length/width/height) не проверяются — их требования отданы CDEK
+	requireItems := orderTypeCode(req.Type) == 1
 
 	for i, pkg := range req.Packages {
 		if pkg.Number == "" {
@@ -210,8 +225,8 @@ func (ov *orderValidator) validate(req *OrderRequest) error {
 		if pkg.Weight <= 0 {
 			return fmt.Errorf("packages[%d].weight must be positive: %w", i, ErrInvalidRequest)
 		}
-		if len(pkg.Items) == 0 {
-			return fmt.Errorf("packages[%d].items cannot be empty: %w", i, ErrInvalidRequest)
+		if requireItems && len(pkg.Items) == 0 {
+			return fmt.Errorf("packages[%d].items cannot be empty for type %q (online_store): %w", i, req.Type, ErrInvalidRequest)
 		}
 
 		for j, item := range pkg.Items {

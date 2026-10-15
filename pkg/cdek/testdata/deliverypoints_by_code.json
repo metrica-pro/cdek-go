@@ -1,0 +1,113 @@
+[
+  {
+    "address_comment": "REDACTED",
+    "allowed_cod": true,
+    "code": "MSK2",
+    "email": "REDACTED",
+    "fulfillment": false,
+    "have_cash": true,
+    "have_cashless": true,
+    "have_fast_payment_system": true,
+    "height_max": 220,
+    "is_dressing_room": true,
+    "is_handout": true,
+    "is_ltl": false,
+    "is_reception": true,
+    "length_max": 80,
+    "location": {
+      "address": "REDACTED",
+      "address_full": "REDACTED",
+      "city": "Москва",
+      "city_code": 44,
+      "city_uuid": "00000000-0000-4000-8000-000000000001",
+      "country_code": "RU",
+      "fias_guid": "00000000-0000-4000-8000-000000000017",
+      "latitude": 55.74564,
+      "longitude": 37.68482,
+      "postal_code": "109544",
+      "region": "Москва",
+      "region_code": 81
+    },
+    "ltl_acceptance_partners": false,
+    "ltl_issuance_partners": false,
+    "name": "REDACTED",
+    "nearest_metro_station": "метро Римская , метро Площадь Ильича",
+    "nearest_station": "Метро Римская",
+    "note": "REDACTED",
+    "office_image_list": [
+      {
+        "url": "https://gateway.cdek.ru/file-storage/web/object/office-photo/f0799d45-e052-4f04-9416-6a688d6eb400"
+      },
+      {
+        "url": "https://gateway.cdek.ru/file-storage/web/object/office-photo/407e7cd7-96b1-4082-9a0c-d4d153139df0"
+      },
+      {
+        "url": "https://gateway.cdek.ru/file-storage/web/object/office-photo/784ab122-36f7-4f12-9e43-ffbc7e35433e"
+      }
+    ],
+    "owner_code": "CDEK",
+    "phones": [
+      {
+        "number": "+70000000000"
+      },
+      {
+        "number": "+70000000000"
+      }
+    ],
+    "site": "https://www.cdek.ru/contacts/g_moskva_ul_sergiya_radonezhskogo_d_31_st_metro_pl.html",
+    "status": "ACTIVE",
+    "take_only": false,
+    "type": "PVZ",
+    "uuid": "00000000-0000-4000-8000-000000000026",
+    "weight_max": 35,
+    "weight_min": 0,
+    "width_max": 120,
+    "work_time": "Пн-Пт 10:00-21:00, Сб-Вс 10:00-20:00",
+    "work_time_exception_list": [
+      {
+        "date_end": "2026-11-04",
+        "date_start": "2026-11-04",
+        "is_working": true,
+        "time_end": "20:00",
+        "time_start": "10:00"
+      }
+    ],
+    "work_time_exceptions": [
+      {
+        "date": "2026-11-04",
+        "is_working": true,
+        "time": "10:00/20:00"
+      }
+    ],
+    "work_time_list": [
+      {
+        "day": 1,
+        "time": "10:00/21:00"
+      },
+      {
+        "day": 2,
+        "time": "10:00/21:00"
+      },
+      {
+        "day": 3,
+        "time": "10:00/21:00"
+      },
+      {
+        "day": 4,
+        "time": "10:00/21:00"
+      },
+      {
+        "day": 5,
+        "time": "10:00/21:00"
+      },
+      {
+        "day": 6,
+        "time": "10:00/20:00"
+      },
+      {
+        "day": 7,
+        "time": "10:00/20:00"
+      }
+    ]
+  }
+]
