@@ -5,6 +5,7 @@ package cdek
 
 import (
 	"context"
+	"errors"
 	"os"
 	"testing"
 	"time"
@@ -56,6 +57,9 @@ func TestIntegration_PVZOrderLifecycle(t *testing.T) {
 		IsReception: ptrBool(true),
 		Size:        ptrInt32(10),
 	})
+	if errors.Is(err, ErrServerError) {
+		t.Skipf("API CDEK недоступен (5xx на подготовительном шаге): %v", err)
+	}
 	if err != nil {
 		t.Fatalf("ListDeliveryPoints(Moscow is_reception) error = %v", err)
 	}
