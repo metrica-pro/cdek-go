@@ -3,6 +3,8 @@ package cdek
 import (
 	"encoding/json"
 	"fmt"
+	"math"
+	"strconv"
 )
 
 // dtoMapper - компонент преобразования между Service API и автогенерированными CDEK типами (camelCase по регламенту 4.6)
@@ -103,20 +105,96 @@ func (m *dtoMapper) fromCDEKCalculatorResponse(data []byte) (*CostResponse, erro
 // Orders
 // ========================
 
+// locationToMap преобразует Location → map для API.
+// Возвращает nil если ни одно поле не задано — пустой адресный блок не отправляется
+func (m *dtoMapper) locationToMap(loc *Location) map[string]interface{} {
+	if loc == nil {
+		return nil
+	}
+	l := make(map[string]interface{})
+	if loc.Code != nil {
+		l["code"] = *loc.Code
+	}
+	if loc.FiasGUID != nil {
+		l["fias_guid"] = *loc.FiasGUID
+	}
+	if loc.PostalCode != nil {
+		l["postal_code"] = *loc.PostalCode
+	}
+	if loc.CountryCode != nil {
+		l["country_code"] = *loc.CountryCode
+	}
+	if loc.Region != nil {
+		l["region"] = *loc.Region
+	}
+	if loc.City != nil {
+		l["city"] = *loc.City
+	}
+	if loc.Address != nil {
+		l["address"] = *loc.Address
+	}
+	if len(l) == 0 {
+		return nil
+	}
+	return l
+}
+
+// pointCode возвращает код ПВЗ или "" если он не задан
+func pointCode(p *string) string {
+	if p == nil || *p == "" {
+		return ""
+	}
+	return *p
+}
+
+// locationFilled сообщает, задано ли хотя бы одно адресное поле Location
+// (пустой адресный блок эквивалентен отсутствию адреса)
+func locationFilled(loc *Location) bool {
+	return loc != nil && (loc.Code != nil || loc.FiasGUID != nil || loc.PostalCode != nil ||
+		loc.CountryCode != nil || loc.Region != nil || loc.City != nil || loc.Address != nil)
+}
+
+// pointAddressConflictErr builds the XOR error: a PVZ code and an address
+// for the same side of the route are mutually exclusive in the CDEK API
+func pointAddressConflictErr(pointField, locField, side string) error {
+	return fmt.Errorf("%s and %s are mutually exclusive: pass either the %s PVZ code or the %s address, not both: %w",
+		pointField, locField, side, side, ErrInvalidRequest)
+}
+
+// orderTypeCode преобразует строковый тип заказа в числительный код CDEK API:
+// 1 - "интернет-магазин" ("online_store"/"1"), 2 - "доставка" ("delivery"/"2").
+// Пустая строка и неизвестное значение трактуются как 1 (как раньше в создании заказа)
+func orderTypeCode(t string) int {
+	switch t {
+	case "delivery", "2":
+		return 2
+	case "online_store", "1":
+		return 1
+	default:
+		return 1
+	}
+}
+
+// orderTypeString обратен orderTypeCode: численный тип заказа из ответа CDEK
+// (1/2) в строковый. Неизвестные числа возвращаются строкой цифр как есть
+func orderTypeString(code int) string {
+	switch code {
+	case 1:
+		return "online_store"
+	case 2:
+		return "delivery"
+	default:
+		return strconv.Itoa(code)
+	}
+}
+
 // toCDEKOrderRequest преобразует OrderRequest → map для OrderCreateRequestDto
 // Используем map[string]interface{} т.к. автогенерированные типы используют interface{}
 func (m *dtoMapper) toCDEKOrderRequest(req *OrderRequest) (map[string]interface{}, error) {
 	order := make(map[string]interface{})
 
 	// Обязательные поля — CDEK v2 expects integer type: 1=online_store, 2=delivery
-	switch req.Type {
-	case "delivery", "2":
-		order["type"] = 2
-	case "online_store", "1":
-		order["type"] = 1
-	default:
-		order["type"] = 1
-	}
+	order["type"] = orderTypeCode(req.Type)
 	order["tariff_code"] = req.TariffCode
 
 	// Опциональный комментарий
@@ -233,67 +311,31 @@ func (m *dtoMapper) toCDEKOrderRequest(req *OrderRequest) (map[string]interface{
 		order["seller"] = seller
 	}
 
-	// Адрес отправителя
-	if req.FromLocation.Code != nil || req.FromLocation.Address != nil {
-		fromLoc := make(map[string]interface{})
-		if req.FromLocation.Code != nil {
-			fromLoc["code"] = *req.FromLocation.Code
+	// Сторона отправителя: код ПВЗ и адрес взаимоисключающие (XOR).
+	// Конфликт отвергается orderValidator при CreateOrder; здесь защита от прямого вызова маппера
+	if code := pointCode(req.ShipmentPoint); code != "" {
+		if locationFilled(&req.FromLocation) {
+			return nil, pointAddressConflictErr("shipment_point", "from_location", "sender")
 		}
-		if req.FromLocation.Address != nil {
-			fromLoc["address"] = *req.FromLocation.Address
-		}
-		if req.FromLocation.City != nil {
-			fromLoc["city"] = *req.FromLocation.City
-		}
+		order["shipment_point"] = code
+	} else if fromLoc := m.locationToMap(&req.FromLocation); fromLoc != nil {
 		order["from_location"] = fromLoc
 	}
 
-	// Адрес получателя
-	if req.ToLocation.Code != nil || req.ToLocation.Address != nil {
-		toLoc := make(map[string]interface{})
-		if req.ToLocation.Code != nil {
-			toLoc["code"] = *req.ToLocation.Code
+	// Сторона получателя: код ПВЗ и адрес взаимоисключающие (XOR)
+	if code := pointCode(req.DeliveryPoint); code != "" {
+		if locationFilled(&req.ToLocation) {
+			return nil, pointAddressConflictErr("delivery_point", "to_location", "recipient")
 		}
-		if req.ToLocation.Address != nil {
-			toLoc["address"] = *req.ToLocation.Address
-		}
-		if req.ToLocation.City != nil {
-			toLoc["city"] = *req.ToLocation.City
-		}
+		order["delivery_point"] = code
+	} else if toLoc := m.locationToMap(&req.ToLocation); toLoc != nil {
 		order["to_location"] = toLoc
 	}
 
 	// Упаковки (обязательно)
 	packages := make([]map[string]interface{}, len(req.Packages))
 	for i, pkg := range req.Packages {
-		p := map[string]interface{}{
-			"number": pkg.Number,
-			"weight": pkg.Weight,
-		}
-		if pkg.Length != nil {
-			p["length"] = *pkg.Length
-		}
-		if pkg.Width != nil {
-			p["width"] = *pkg.Width
-		}
-		if pkg.Height != nil {
-			p["height"] = *pkg.Height
-		}
-
-		// Товары в упаковке
-		items := make([]map[string]interface{}, len(pkg.Items))
-		for j, item := range pkg.Items {
-			items[j] = map[string]interface{}{
-				"name":     item.Name,
-				"ware_key": item.WareKey,
-				"payment":  map[string]interface{}{"value": item.Payment},
-				"cost":     item.Cost,
-				"weight":   item.Weight,
-				"amount":   item.Amount,
-			}
-		}
-		p["items"] = items
-		packages[i] = p
+		packages[i] = orderPackageToMap(pkg)
 	}
 	order["packages"] = packages
 
@@ -488,6 +530,31 @@ func (m *dtoMapper) fromCDEKDeliveryPoints(data []byte) ([]DeliveryPoint, error)
 		if note, ok := p["note"].(string); ok {
 			point.Note = &note
 		}
+		// Числовые поля приходят как float64 (encoding/json для interface{})
+		if v, ok := p["have_cashless"].(bool); ok {
+			point.HaveCashless = v
+		}
+		if v, ok := p["have_cash"].(bool); ok {
+			point.HaveCash = v
+		}
+		if v, ok := p["allowed_cod"].(bool); ok {
+			point.AllowedCOD = v
+		}
+		if v, ok := p["is_dressing_room"].(bool); ok {
+			point.IsDressingRoom = v
+		}
+		// nil = поля нет в ответе CDEK; единицы — килограммы (см. спеку, OfficeDto)
+		if v, ok := p["weight_min"].(float64); ok {
+			weightMin := v
+			point.WeightMin = &weightMin
+		}
+		if v, ok := p["weight_max"].(float64); ok {
+			weightMax := v
+			point.WeightMax = &weightMax
+		}
+		if v, ok := p["owner_code"].(string); ok {
+			point.OwnerCode = v
+		}
 
 		// Телефоны
 		if phones, ok := p["phones"].([]interface{}); ok {
@@ -523,6 +590,17 @@ func (m *dtoMapper) fromCDEKDeliveryPoints(data []byte) ([]DeliveryPoint, error)
 			if postal, ok := loc["postal_code"].(string); ok {
 				point.Location.PostalCode = postal
 			}
+			// Числовые коды приходят как float64 (encoding/json для interface{});
+			// вне диапазона int32 остается 0 — конверсия с проверкой границ
+			if v, ok := loc["city_code"].(float64); ok && v >= math.MinInt32 && v <= math.MaxInt32 {
+				point.Location.CityCode = int32(v)
+			}
+			if v, ok := loc["region_code"].(float64); ok && v >= math.MinInt32 && v <= math.MaxInt32 {
+				point.Location.RegionCode = int32(v)
+			}
+			if addressFull, ok := loc["address_full"].(string); ok {
+				point.Location.AddressFull = addressFull
+			}
 			if lat, ok := loc["latitude"].(float64); ok {
 				point.Location.Latitude = lat
 			}
@@ -550,6 +628,160 @@ func (m *dtoMapper) fromCDEKDeliveryPoints(data []byte) ([]DeliveryPoint, error)
 // Order Info (GetOrder)
 // ========================
 
+// locationFromMap разбирает объект entity.from_location / entity.to_location из ответа
+// GET /v2/orders в Location. Ключи объекта: code, fias_guid, postal_code, country_code,
+// region, region_code, city, city_uuid, address, sub_region, latitude, longitude
+// (region_code, city_uuid, sub_region, latitude, longitude в Location нет — игнорируются).
+// Отсутствие объекта или поля ошибкой не является
+func locationFromMap(loc map[string]interface{}) Location {
+	var out Location
+	// Числовые коды приходят как float64 (encoding/json для interface{});
+	// вне диапазона int32 поле не заполняется
+	if v, ok := loc["code"].(float64); ok && v >= math.MinInt32 && v <= math.MaxInt32 {
+		code := int32(v)
+		out.Code = &code
+	}
+	if v, ok := loc["fias_guid"].(string); ok && v != "" {
+		out.FiasGUID = &v
+	}
+	if v, ok := loc["postal_code"].(string); ok && v != "" {
+		out.PostalCode = &v
+	}
+	if v, ok := loc["country_code"].(string); ok && v != "" {
+		out.CountryCode = &v
+	}
+	if v, ok := loc["region"].(string); ok && v != "" {
+		out.Region = &v
+	}
+	if v, ok := loc["city"].(string); ok && v != "" {
+		out.City = &v
+	}
+	if v, ok := loc["address"].(string); ok && v != "" {
+		out.Address = &v
+	}
+	return out
+}
+
+// int32FromCDEK конвертирует JSON-число (через interface{} всегда float64) в int32;
+// вне диапазона int32 остается 0
+func int32FromCDEK(v float64) int32 {
+	if v < math.MinInt32 || v > math.MaxInt32 {
+		return 0
+	}
+	return int32(v)
+}
+
+// orderPackagesFromCDEK разбирает entity.packages ответа GET /v2/orders в []OrderPackage.
+// Отсутствующие ключи оставляют нулевые значения (для type=2/delivery items может не быть)
+func orderPackagesFromCDEK(pkgs []interface{}) []OrderPackage {
+	out := make([]OrderPackage, 0, len(pkgs))
+	for _, p := range pkgs {
+		pkgMap, ok := p.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		pkg := OrderPackage{}
+		if v, ok := pkgMap["number"].(string); ok {
+			pkg.Number = v
+		}
+		if v, ok := pkgMap["weight"].(float64); ok {
+			pkg.Weight = int32FromCDEK(v)
+		}
+		if v, ok := pkgMap["length"].(float64); ok {
+			length := int32FromCDEK(v)
+			pkg.Length = &length
+		}
+		if v, ok := pkgMap["width"].(float64); ok {
+			width := int32FromCDEK(v)
+			pkg.Width = &width
+		}
+		if v, ok := pkgMap["height"].(float64); ok {
+			height := int32FromCDEK(v)
+			pkg.Height = &height
+		}
+		if v, ok := pkgMap["comment"].(string); ok {
+			pkg.Comment = &v
+		}
+		if items, ok := pkgMap["items"].([]interface{}); ok {
+			pkg.Items = make([]Item, 0, len(items))
+			for _, it := range items {
+				itemMap, ok := it.(map[string]interface{})
+				if !ok {
+					continue
+				}
+				item := Item{}
+				if v, ok := itemMap["name"].(string); ok {
+					item.Name = v
+				}
+				if v, ok := itemMap["ware_key"].(string); ok {
+					item.WareKey = v
+				}
+				// payment — объект {value, ...}
+				if payment, ok := itemMap["payment"].(map[string]interface{}); ok {
+					if v, ok := payment["value"].(float64); ok {
+						item.Payment = v
+					}
+				}
+				if v, ok := itemMap["cost"].(float64); ok {
+					item.Cost = v
+				}
+				if v, ok := itemMap["weight"].(float64); ok {
+					item.Weight = int32FromCDEK(v)
+				}
+				if v, ok := itemMap["amount"].(float64); ok {
+					item.Amount = int32FromCDEK(v)
+				}
+				pkg.Items = append(pkg.Items, item)
+			}
+		}
+		out = append(out, pkg)
+	}
+	return out
+}
+
+// orderRequestsFromCDEK разбирает корневой массив requests[] ответа GET /v2/orders
+// (ResponseDtoOrderResponseDto → RequestDto1: type, state, date_time, errors).
+// Состояние асинхронного создания/обновления (ACCEPTED/WAITING/SUCCESSFUL/INVALID)
+// лежит именно здесь, в entity.requests его нет (спека и живые фикстуры)
+func orderRequestsFromCDEK(requests []interface{}) []OrderRequestState {
+	out := make([]OrderRequestState, 0, len(requests))
+	for _, r := range requests {
+		reqMap, ok := r.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		state := OrderRequestState{}
+		if v, ok := reqMap["type"].(string); ok {
+			state.Type = v
+		}
+		if v, ok := reqMap["state"].(string); ok {
+			state.State = v
+		}
+		if v, ok := reqMap["date_time"].(string); ok {
+			state.DateTime = v
+		}
+		if errs, ok := reqMap["errors"].([]interface{}); ok {
+			state.Errors = make([]OrderError, 0, len(errs))
+			for _, e := range errs {
+				errMap, ok := e.(map[string]interface{})
+				if !ok {
+					continue
+				}
+				orderErr := OrderError{}
+				if v, ok := errMap["code"].(string); ok {
+					orderErr.Code = v
+				}
+				if v, ok := errMap["message"].(string); ok {
+					orderErr.Message = v
+				}
+				state.Errors = append(state.Errors, orderErr)
+			}
+		}
+		out = append(out, state)
+	}
+	return out
+}
+
 // fromCDEKOrderToInfo преобразует GetOrder ответ → OrderInfo (полная информация)
 func (m *dtoMapper) fromCDEKOrderToInfo(data []byte) (*OrderInfo, error) {
 	var rawResp map[string]interface{}
@@ -575,14 +807,40 @@ func (m *dtoMapper) fromCDEKOrderToInfo(data []byte) (*OrderInfo, error) {
 		info.Number = &cdekNum
 	}
 
-	// Тип заказа
-	if orderType, ok := entity["type"].(string); ok {
+	// Тип заказа: CDEK отдает число (1=интернет-магазин, 2=доставка);
+	// обратный маппинг orderTypeString, неизвестное число — строкой цифр.
+	// Строковое значение (если появится) принимается как есть
+	if orderType, ok := entity["type"].(float64); ok {
+		info.Type = orderTypeString(int(orderType))
+	} else if orderType, ok := entity["type"].(string); ok {
 		info.Type = orderType
 	}
 
 	// Код тарифа
 	if tariff, ok := entity["tariff_code"].(float64); ok {
 		info.TariffCode = int(tariff)
+	}
+
+	// Коды ПВЗ отправителя/получателя — верхнеуровневые строки ответа (OrderResponseDto),
+	// заданы только для заказов «от склада»/«до склада»
+	if code, ok := entity["shipment_point"].(string); ok {
+		info.ShipmentPoint = code
+	}
+	if code, ok := entity["delivery_point"].(string); ok {
+		info.DeliveryPoint = code
+	}
+
+	// Локации отправителя/получателя (entity.from_location / entity.to_location)
+	if loc, ok := entity["from_location"].(map[string]interface{}); ok {
+		info.FromLocation = locationFromMap(loc)
+	}
+	if loc, ok := entity["to_location"].(map[string]interface{}); ok {
+		info.ToLocation = locationFromMap(loc)
+	}
+
+	// Упаковки (entity.packages)
+	if pkgs, ok := entity["packages"].([]interface{}); ok {
+		info.Packages = orderPackagesFromCDEK(pkgs)
 	}
 
 	// Отправитель (теперь Recipient с поддержкой ИНН и паспорта)
@@ -725,12 +983,12 @@ func (m *dtoMapper) fromCDEKOrderToInfo(data []byte) (*OrderInfo, error) {
 		}
 	}
 
-	// Дата создания из requests
-	if requests, ok := entity["requests"].([]interface{}); ok && len(requests) > 0 {
-		if firstReq, ok := requests[0].(map[string]interface{}); ok {
-			if dt, ok := firstReq["date_time"].(string); ok {
-				info.CreatedAt = dt
-			}
+	// Асинхронные запросы над заказом: корневой requests[] ответа (не entity),
+	// date_time первого — дата создания заказа
+	if requests, ok := rawResp["requests"].([]interface{}); ok {
+		info.Requests = orderRequestsFromCDEK(requests)
+		if len(info.Requests) > 0 {
+			info.CreatedAt = info.Requests[0].DateTime
 		}
 	}
 
@@ -748,12 +1006,55 @@ func (m *dtoMapper) fromCDEKOrderToInfo(data []byte) (*OrderInfo, error) {
 // Update Order
 // ========================
 
+// orderPackageToMap преобразует OrderPackage → map для API (create и update).
+// comment отправляется всегда, когда задан: некоторые договоры CDEK требуют packages[].comment
+// (v2_field_is_empty). items не отправляются, если пусты (для type=2 они необязательны)
+func orderPackageToMap(pkg OrderPackage) map[string]interface{} {
+	p := map[string]interface{}{
+		"number": pkg.Number,
+		"weight": pkg.Weight,
+	}
+	if pkg.Length != nil {
+		p["length"] = *pkg.Length
+	}
+	if pkg.Width != nil {
+		p["width"] = *pkg.Width
+	}
+	if pkg.Height != nil {
+		p["height"] = *pkg.Height
+	}
+	if pkg.Comment != nil && *pkg.Comment != "" {
+		p["comment"] = *pkg.Comment
+	}
+	if len(pkg.Items) > 0 {
+		items := make([]map[string]interface{}, len(pkg.Items))
+		for j, item := range pkg.Items {
+			items[j] = map[string]interface{}{
+				"name":     item.Name,
+				"ware_key": item.WareKey,
+				"payment":  map[string]interface{}{"value": item.Payment},
+				"cost":     item.Cost,
+				"weight":   item.Weight,
+				"amount":   item.Amount,
+			}
+		}
+		p["items"] = items
+	}
+	return p
+}
+
 // toCDEKUpdateOrderRequest преобразует UpdateOrderRequest → map для Update API
 func (m *dtoMapper) toCDEKUpdateOrderRequest(req *UpdateOrderRequest) (map[string]interface{}, error) {
 	update := make(map[string]interface{})
 
 	// UUID обязательный для обновления
 	update["uuid"] = req.OrderUUID
+
+	// Тип заказа (по спеке PATCH требует type и recipient; отправляем только если задан,
+	// чтобы не менять поведение существующих вызовов без Type)
+	if req.Type != "" {
+		update["type"] = orderTypeCode(req.Type)
+	}
 
 	// Получатель (если указан)
 	if req.Recipient != nil {
@@ -866,33 +1167,25 @@ func (m *dtoMapper) toCDEKUpdateOrderRequest(req *UpdateOrderRequest) (map[strin
 		update["seller"] = seller
 	}
 
-	// Адрес получателя (если указан)
-	if req.ToLocation != nil {
-		toLoc := make(map[string]interface{})
-		if req.ToLocation.Code != nil {
-			toLoc["code"] = *req.ToLocation.Code
+	// Сторона получателя: код ПВЗ и адрес взаимоисключающие (XOR),
+	// конфликт — ошибка, адрес не отбрасывается молча
+	if code := pointCode(req.DeliveryPoint); code != "" {
+		if locationFilled(req.ToLocation) {
+			return nil, pointAddressConflictErr("delivery_point", "to_location", "recipient")
 		}
-		if req.ToLocation.Address != nil {
-			toLoc["address"] = *req.ToLocation.Address
-		}
-		if req.ToLocation.City != nil {
-			toLoc["city"] = *req.ToLocation.City
-		}
+		update["delivery_point"] = code
+	} else if toLoc := m.locationToMap(req.ToLocation); toLoc != nil {
 		update["to_location"] = toLoc
 	}
 
-	// Адрес отправителя (если указан)
-	if req.FromLocation != nil {
-		fromLoc := make(map[string]interface{})
-		if req.FromLocation.Code != nil {
-			fromLoc["code"] = *req.FromLocation.Code
+	// Сторона отправителя: код ПВЗ и адрес взаимоисключающие (XOR),
+	// конфликт — ошибка, адрес не отбрасывается молча
+	if code := pointCode(req.ShipmentPoint); code != "" {
+		if locationFilled(req.FromLocation) {
+			return nil, pointAddressConflictErr("shipment_point", "from_location", "sender")
 		}
-		if req.FromLocation.Address != nil {
-			fromLoc["address"] = *req.FromLocation.Address
-		}
-		if req.FromLocation.City != nil {
-			fromLoc["city"] = *req.FromLocation.City
-		}
+		update["shipment_point"] = code
+	} else if fromLoc := m.locationToMap(req.FromLocation); fromLoc != nil {
 		update["from_location"] = fromLoc
 	}
 
@@ -905,34 +1198,7 @@ func (m *dtoMapper) toCDEKUpdateOrderRequest(req *UpdateOrderRequest) (map[strin
 	if len(req.Packages) > 0 {
 		packages := make([]map[string]interface{}, len(req.Packages))
 		for i, pkg := range req.Packages {
-			p := map[string]interface{}{
-				"number": pkg.Number,
-				"weight": pkg.Weight,
-			}
-			if pkg.Length != nil {
-				p["length"] = *pkg.Length
-			}
-			if pkg.Width != nil {
-				p["width"] = *pkg.Width
-			}
-			if pkg.Height != nil {
-				p["height"] = *pkg.Height
-			}
-
-			// Товары в упаковке
-			items := make([]map[string]interface{}, len(pkg.Items))
-			for j, item := range pkg.Items {
-				items[j] = map[string]interface{}{
-					"name":     item.Name,
-					"ware_key": item.WareKey,
-					"payment":  map[string]interface{}{"value": item.Payment},
-					"cost":     item.Cost,
-					"weight":   item.Weight,
-					"amount":   item.Amount,
-				}
-			}
-			p["items"] = items
-			packages[i] = p
+			packages[i] = orderPackageToMap(pkg)
 		}
 		update["packages"] = packages
 	}

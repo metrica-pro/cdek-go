@@ -1,0 +1,16 @@
+{
+  "errors": [
+    {
+      "code": "v2_field_is_empty",
+      "message": "[from_location] is empty"
+    },
+    {
+      "code": "v2_field_is_empty",
+      "message": "[to_location] is empty"
+    },
+    {
+      "code": "v2_field_is_empty",
+      "message": "[packages] is empty"
+    }
+  ]
+}

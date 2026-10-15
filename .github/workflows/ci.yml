@@ -32,6 +32,13 @@ jobs:
       - run: go test -v -race -coverprofile=coverage.out ./...
       - name: Coverage report
         run: go tool cover -func=coverage.out | tail -1
+      - name: Coverage gate (pkg/cdek >= 75%)
+        run: |
+          echo "Coverage by service.go / dto_mapper.go:"
+          go tool cover -func=coverage.out | grep -E 'pkg/cdek/(service|dto_mapper)\.go:' || true
+          total=$(awk '$1 ~ /\/pkg\/cdek\// { stmts += $2; if ($3 > 0) hit += $2 } END { printf "%.1f", 100 * hit / stmts }' coverage.out)
+          echo "pkg/cdek total: ${total}% (threshold 75%)"
+          awk -v threshold=75 -v pct="$total" 'BEGIN { if (pct < threshold) { printf "coverage %.1f%% is below threshold %d%%\n", pct, threshold; exit 1 } }'
 
   build:
     runs-on: ubuntu-latest

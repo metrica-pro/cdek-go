@@ -55,15 +55,17 @@ type Seller struct {
 
 // OrderRequest - запрос на создание заказа
 type OrderRequest struct {
-	Type         string        // Тип заказа: "delivery" (доставка), "pickup" (самовывоз)
-	TariffCode   int           // Код тарифа
-	Comment      *string       // Комментарий к заказу
-	Sender       Recipient     // Отправитель (может быть компания с ИНН или физлицо с паспортом)
-	Recipient    Recipient     // Получатель (может быть компания с ИНН или физлицо с паспортом)
-	Seller       *Seller       // Истинный продавец (третье лицо) - только для интернет-магазинов
-	FromLocation Location      // Адрес отправителя
-	ToLocation   Location      // Адрес получателя
-	Packages     []OrderPackage // Список мест
+	Type          string         // Тип заказа: "online_store"/"1" (интернет-магазин), "delivery"/"2" (доставка)
+	TariffCode    int            // Код тарифа
+	Comment       *string        // Комментарий к заказу
+	Sender        Recipient      // Отправитель (может быть компания с ИНН или физлицо с паспортом)
+	Recipient     Recipient      // Получатель (может быть компания с ИНН или физлицо с паспортом)
+	Seller        *Seller        // Истинный продавец (третье лицо) - только для интернет-магазинов
+	ShipmentPoint *string        // Код ПВЗ отправителя; вместе с непустым FromLocation — ошибка валидации (XOR по CDEK)
+	FromLocation  Location       // Адрес отправителя
+	DeliveryPoint *string        // Код ПВЗ получателя; вместе с непустым ToLocation — ошибка валидации (XOR по CDEK)
+	ToLocation    Location       // Адрес получателя
+	Packages      []OrderPackage // Список мест
 }
 
 // Contact - контактная информация
@@ -77,13 +79,13 @@ type Contact struct {
 // Recipient - информация о получателе (расширяет Contact)
 // Может быть как физическое лицо (Name + паспорт), так и компания (Company + ИНН)
 type Recipient struct {
-	Contact                 // Базовая контактная информация (Name обязательно для физлица, Company для юрлица)
-	TIN                     *string // ИНН (Tax Identification Number) - для юридических лиц и ИП (10 или 12 символов)
-	PassportSeries          *string // Серия паспорта (для физических лиц)
-	PassportNumber          *string // Номер паспорта (для физических лиц)
-	PassportDateOfIssue     *string // Дата выдачи паспорта (для физических лиц)
-	PassportOrganization    *string // Кем выдан паспорт (для физических лиц)
-	PassportDateOfBirth     *string // Дата рождения (yyyy-MM-dd) (для физических лиц)
+	Contact                      // Базовая контактная информация (Name обязательно для физлица, Company для юрлица)
+	TIN                  *string // ИНН (Tax Identification Number) - для юридических лиц и ИП (10 или 12 символов)
+	PassportSeries       *string // Серия паспорта (для физических лиц)
+	PassportNumber       *string // Номер паспорта (для физических лиц)
+	PassportDateOfIssue  *string // Дата выдачи паспорта (для физических лиц)
+	PassportOrganization *string // Кем выдан паспорт (для физических лиц)
+	PassportDateOfBirth  *string // Дата рождения (yyyy-MM-dd) (для физических лиц)
 }
 
 // Phone - телефонный номер
@@ -94,13 +96,13 @@ type Phone struct {
 
 // Location - местоположение (адрес)
 type Location struct {
-	Code       *int32  // Код населенного пункта СДЭК
-	FiasGUID   *string // Уникальный идентификатор ФИАС
-	PostalCode *string // Почтовый индекс
+	Code        *int32  // Код населенного пункта СДЭК
+	FiasGUID    *string // Уникальный идентификатор ФИАС
+	PostalCode  *string // Почтовый индекс
 	CountryCode *string // Код страны (ISO 3166-1 alpha-2)
-	Region     *string // Регион
-	City       *string // Город
-	Address    *string // Адрес (улица, дом, квартира)
+	Region      *string // Регион
+	City        *string // Город
+	Address     *string // Адрес (улица, дом, квартира)
 }
 
 // OrderPackage - информация об упаковке в заказе
@@ -143,33 +145,55 @@ type StatusEvent struct {
 
 // UpdateOrderRequest - запрос на обновление заказа
 type UpdateOrderRequest struct {
-	OrderUUID    string         // UUID заказа для обновления
-	Recipient    *Recipient     // Новые данные получателя
-	Sender       *Recipient     // Новые данные отправителя (может быть компания с ИНН или физлицо)
-	Seller       *Seller        // Истинный продавец (третье лицо)
-	ToLocation   *Location      // Новый адрес доставки
-	FromLocation *Location      // Новый адрес отправления
-	Comment      *string        // Новый комментарий
-	Packages     []OrderPackage // Обновленный список мест (если нужно)
+	OrderUUID     string         // UUID заказа для обновления
+	Type          string         // Тип заказа как в OrderRequest.Type ("delivery"/"online_store"); по спеке PATCH требует type и recipient — отправляется только если задан
+	Recipient     *Recipient     // Новые данные получателя (по спеке PATCH обязателен)
+	Sender        *Recipient     // Новые данные отправителя (может быть компания с ИНН или физлицо)
+	Seller        *Seller        // Истинный продавец (третье лицо)
+	ShipmentPoint *string        // Код ПВЗ отправителя; вместе с непустым FromLocation — ошибка (XOR по CDEK)
+	FromLocation  *Location      // Новый адрес отправления
+	DeliveryPoint *string        // Код ПВЗ получателя; вместе с непустым ToLocation — ошибка (XOR по CDEK)
+	ToLocation    *Location      // Новый адрес доставки
+	Comment       *string        // Новый комментарий
+	Packages      []OrderPackage // Обновленный список мест (если нужно)
 }
 
 // OrderInfo - полная информация о заказе
 type OrderInfo struct {
-	UUID              string         // Идентификатор заказа в CDEK
-	Number            *string        // Номер заказа CDEK
-	Type              string         // Тип заказа
-	TariffCode        int            // Код тарифа
-	Sender            Recipient      // Отправитель (может быть компания с ИНН)
-	Recipient         Recipient      // Получатель (может быть компания с ИНН)
-	Seller            *Seller        // Продавец (третье лицо, для интернет-магазинов)
-	FromLocation      Location       // Адрес отправления
-	ToLocation        Location       // Адрес доставки
-	Packages          []OrderPackage // Список мест
-	Statuses          []StatusEvent  // История статусов
-	CreatedAt         string         // Дата создания
-	DeliveryCost      *float64       // Стоимость доставки
-	EstimatedDelivery *string        // Планируемая дата доставки
-	ActualDelivery    *string        // Фактическая дата доставки
+	UUID              string              // Идентификатор заказа в CDEK
+	Number            *string             // Номер заказа CDEK
+	Type              string              // Тип заказа: "online_store"/"delivery" (обратный маппинг числового типа CDEK 1/2)
+	TariffCode        int                 // Код тарифа
+	Sender            Recipient           // Отправитель (может быть компания с ИНН)
+	Recipient         Recipient           // Получатель (может быть компания с ИНН)
+	Seller            *Seller             // Продавец (третье лицо, для интернет-магазинов)
+	FromLocation      Location            // Адрес отправления
+	ToLocation        Location            // Адрес доставки
+	ShipmentPoint     string              // Код ПВЗ отправителя (если заказ «от склада»)
+	DeliveryPoint     string              // Код ПВЗ получателя (если заказ «до склада»/«до постамата»)
+	Packages          []OrderPackage      // Список мест
+	Statuses          []StatusEvent       // История статусов
+	Requests          []OrderRequestState // Состояние асинхронных запросов над заказом (корневой requests[] ответа)
+	CreatedAt         string              // Дата создания
+	DeliveryCost      *float64            // Стоимость доставки
+	EstimatedDelivery *string             // Планируемая дата доставки
+	ActualDelivery    *string             // Фактическая дата доставки
+}
+
+// OrderRequestState - состояние асинхронного запроса над заказом (корневой
+// requests[] ответа GET /v2/orders: RequestDto1). HTTP 202/ACCEPTED при создании
+// не означает, что заказ создан — итог виден по State
+type OrderRequestState struct {
+	Type     string       // Тип запроса: CREATE, UPDATE, DELETE, AUTH, GET, CREATE_CLIENT_RETURN
+	State    string       // Состояние: ACCEPTED, WAITING, SUCCESSFUL, INVALID
+	DateTime string       // Дата и время установки состояния (ISO 8601)
+	Errors   []OrderError // Ошибки обработки запроса (у State=INVALID)
+}
+
+// OrderError - ошибка из requests[].errors[] ответа
+type OrderError struct {
+	Code    string // Код ошибки CDEK
+	Message string // Текст ошибки
 }
 
 // ========================
@@ -192,32 +216,58 @@ type TrackingInfo struct {
 
 // DeliveryPointsRequest - запрос на получение списка ПВЗ
 type DeliveryPointsRequest struct {
-	CityCode string // Код города (по КЛАДР)
-	Type     string // Тип пункта: "PVZ" (пункт выдачи), "POSTAMAT" (постамат)
+	CityCode       string // Код города (по КЛАДР)
+	Type           string // Тип пункта: "PVZ" (пункт выдачи), "POSTAMAT" (постамат), "ALL" (все; значение CDEK по умолчанию)
+	Code           string // Код ПВЗ
+	CountryCode    string // Код страны (ISO 3166-1 alpha-2)
+	RegionCode     *int32 // Код региона
+	PostalCode     string // Почтовый индекс
+	FiasGUID       string // Уникальный идентификатор ФИАС
+	HaveCashless   *bool  // Есть безналичная оплата
+	HaveCash       *bool  // Есть наличная оплата
+	AllowedCOD     *bool  // Разрешен наложенный платеж
+	IsDressingRoom *bool  // Есть примерочная
+	IsHandout      *bool  // Разрешен выдача заказов
+	IsReception    *bool  // Разрешен прием заказов
+	TakeOnly       *bool  // Только прием (выдача запрещена)
+	WeightMax      *int32 // Максимальный вес приема/выдачи в кг (значения > 0)
+	WeightMin      *int32 // Минимальный вес приема/выдачи в кг
+	Size           *int32 // Количество результатов на страницу (значения <= 0 не отправляются)
+	Page           *int32 // Номер страницы (значения <= 0 не отправляются)
 }
 
 // DeliveryPoint - пункт выдачи заказов
 type DeliveryPoint struct {
-	Code        string        // Код ПВЗ
-	Name        string        // Название ПВЗ
-	Type        string        // Тип: "PVZ", "POSTAMAT"
-	Location    PointLocation // Адрес расположения
-	WorkTime    string        // Режим работы
-	Phones      []Phone       // Телефоны
-	Email       *string       // Email
-	Note        *string       // Примечание
-	OfficeImage *string       // URL изображения офиса
+	Code           string        // Код ПВЗ
+	Name           string        // Название ПВЗ
+	Type           string        // Тип: "PVZ", "POSTAMAT"
+	Location       PointLocation // Адрес расположения
+	WorkTime       string        // Режим работы
+	Phones         []Phone       // Телефоны
+	Email          *string       // Email
+	Note           *string       // Примечание
+	OfficeImage    *string       // URL изображения офиса
+	HaveCashless   bool          // Есть безналичная оплата
+	HaveCash       bool          // Есть наличная оплата
+	AllowedCOD     bool          // Разрешен наложенный платеж
+	IsDressingRoom bool          // Есть примерочная
+	WeightMin      *float64      // Минимальный вес приема/выдачи в кг (nil - поля нет в ответе)
+	WeightMax      *float64      // Максимальный вес приема/выдачи в кг (nil - поля нет в ответе)
+	OwnerCode      string        // Код владельца ПВЗ (CDEK/IML)
 }
 
 // PointLocation - местоположение пункта выдачи
 type PointLocation struct {
-	Country    string  // Страна
-	Region     string  // Регион
-	City       string  // Город
-	Address    string  // Адрес
-	PostalCode string  // Почтовый индекс
-	Latitude   float64 // Широта
-	Longitude  float64 // Долгота
+	Country     string  // Страна
+	Region      string  // Регион
+	RegionCode  int32   // Код региона
+	City        string  // Город
+	CityCode    int32   // Код города (по КЛАДР)
+	Address     string  // Адрес
+	AddressFull string  // Полный адрес одной строкой
+	PostalCode  string  // Почтовый индекс
+	Latitude    float64 // Широта
+	Longitude   float64 // Долгота
 }
 
 // ========================
@@ -269,18 +319,18 @@ type CitiesRequest struct {
 
 // City - город из справочника СДЭК
 type City struct {
-	Code          int     // Код населенного пункта СДЭК
-	City          string  // Название города
-	FiasGUID      *string // Уникальный идентификатор ФИАС
-	Region        string  // Регион
-	RegionCode    int     // Код региона
-	Country       string  // Страна
-	CountryCode   string  // Код страны
-	Latitude      float64 // Широта
-	Longitude     float64 // Долгота
-	TimeZone      string  // Часовой пояс
-	PaymentLimit  float64 // Ограничение оплаты наличными
-	PostalCodes   []string // Почтовые индексы
+	Code         int      // Код населенного пункта СДЭК
+	City         string   // Название города
+	FiasGUID     *string  // Уникальный идентификатор ФИАС
+	Region       string   // Регион
+	RegionCode   int      // Код региона
+	Country      string   // Страна
+	CountryCode  string   // Код страны
+	Latitude     float64  // Широта
+	Longitude    float64  // Долгота
+	TimeZone     string   // Часовой пояс
+	PaymentLimit float64  // Ограничение оплаты наличными
+	PostalCodes  []string // Почтовые индексы
 }
 
 // RegionsRequest - запрос на получение списка регионов
@@ -307,7 +357,7 @@ type Region struct {
 
 // IntakeRequest - запрос на создание заявки на забор груза
 type IntakeRequest struct {
-	IntakeDate   string          // Дата ожидаемого забора (ISO 8601: YYYY-MM-DD)
+	IntakeDate     string        // Дата ожидаемого забора (ISO 8601: YYYY-MM-DD)
 	IntakeTimeFrom string        // Время начала ожидания (HH:MM)
 	IntakeTimeTo   string        // Время окончания ожидания (HH:MM)
 	LunchTimeFrom  *string       // Время начала обеда (HH:MM)
@@ -335,16 +385,16 @@ type IntakeResponse struct {
 
 // IntakeInfo - информация о заявке на забор
 type IntakeInfo struct {
-	UUID           string          // UUID заявки
-	Number         string          // Номер заявки
-	IntakeDate     string          // Дата забора
-	IntakeTimeFrom string          // Время начала
-	IntakeTimeTo   string          // Время окончания
-	Status         string          // Статус
-	Sender         Contact         // Отправитель
-	FromLocation   Location        // Адрес забора
-	Orders         []IntakeOrder   // Заказы
-	CreatedAt      string          // Дата создания
+	UUID           string        // UUID заявки
+	Number         string        // Номер заявки
+	IntakeDate     string        // Дата забора
+	IntakeTimeFrom string        // Время начала
+	IntakeTimeTo   string        // Время окончания
+	Status         string        // Статус
+	Sender         Contact       // Отправитель
+	FromLocation   Location      // Адрес забора
+	Orders         []IntakeOrder // Заказы
+	CreatedAt      string        // Дата создания
 }
 
 // ========================
@@ -353,16 +403,16 @@ type IntakeInfo struct {
 
 // Типы событий webhook
 const (
-	WebhookTypeOrderStatus         = "ORDER_STATUS"          // Изменение статуса заказа
-	WebhookTypeOrderModified       = "ORDER_MODIFIED"        // Изменение заказа
-	WebhookTypePrintForm           = "PRINT_FORM"            // Готовность печатной формы
-	WebhookTypeReceipt             = "RECEIPT"               // Квитанция
-	WebhookTypePrealertClosed      = "PREALERT_CLOSED"       // Закрытие преалерта
-	WebhookTypeAccompanyingWaybill = "ACCOMPANYING_WAYBILL"  // Информация о транспорте
-	WebhookTypeOfficeAvailability  = "OFFICE_AVAILABILITY"   // Доступность офиса
-	WebhookTypeDelivAgreement      = "DELIV_AGREEMENT"       // Договоренность о доставке
-	WebhookTypeDelivProblem        = "DELIV_PROBLEM"         // Проблемы доставки
-	WebhookTypeCourierInfo         = "COURIER_INFO"          // Информация о курьере
+	WebhookTypeOrderStatus         = "ORDER_STATUS"         // Изменение статуса заказа
+	WebhookTypeOrderModified       = "ORDER_MODIFIED"       // Изменение заказа
+	WebhookTypePrintForm           = "PRINT_FORM"           // Готовность печатной формы
+	WebhookTypeReceipt             = "RECEIPT"              // Квитанция
+	WebhookTypePrealertClosed      = "PREALERT_CLOSED"      // Закрытие преалерта
+	WebhookTypeAccompanyingWaybill = "ACCOMPANYING_WAYBILL" // Информация о транспорте
+	WebhookTypeOfficeAvailability  = "OFFICE_AVAILABILITY"  // Доступность офиса
+	WebhookTypeDelivAgreement      = "DELIV_AGREEMENT"      // Договоренность о доставке
+	WebhookTypeDelivProblem        = "DELIV_PROBLEM"        // Проблемы доставки
+	WebhookTypeCourierInfo         = "COURIER_INFO"         // Информация о курьере
 )
 
 // WebhookRequest - запрос на создание webhook

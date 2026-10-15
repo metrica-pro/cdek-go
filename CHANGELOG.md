@@ -5,6 +5,63 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+## [0.3.0] - 2026-10-15
+
+### Added
+- **Доставка в ПВЗ и между ПВЗ** для `CreateOrder`/`UpdateOrder`:
+  - `OrderRequest.DeliveryPoint` / `OrderRequest.ShipmentPoint` — коды ПВЗ получателя и отправителя
+  - `UpdateOrderRequest.DeliveryPoint` / `UpdateOrderRequest.ShipmentPoint` — то же для обновления заказа
+  - конфликт «код ПВЗ + адрес одной стороны» (`shipment_point`+`from_location`, `delivery_point`+`to_location`)
+    — ошибка `ErrInvalidRequest` (XOR по `delivery_mode`), адрес не отбрасывается молча;
+    смешанные режимы (адрес с одной стороны и ПВЗ с другой) валидны
+- `UpdateOrderRequest.Type` — тип заказа как в `OrderRequest.Type` (`"delivery"`/`"online_store"`).
+  По спеке `OrderUpdateRequestDto` PATCH требует `type` и `recipient`: передавайте оба поля,
+  `Type` отправляется только когда задан (без него поведение прежнее)
+- `OrderInfo.DeliveryPoint` / `OrderInfo.ShipmentPoint` — коды ПВЗ из ответа `GetOrder`
+  (верхнеуровневые строки `OrderResponseDto`)
+- `OrderInfo.Type` — `"online_store"`/`"delivery"`: CDEK отдает `entity.type` числом (1/2),
+  раньше поле всегда было пустым; неизвестное число — строкой цифр
+- `OrderInfo.Packages` — разбор `entity.packages` ответа `GetOrder`
+  (`number`, `weight`, габариты, `comment`, `items` с `payment.value`, `cost`, `weight`, `amount`)
+- `OrderInfo.Requests []OrderRequestState` — состояние асинхронных запросов над заказом
+  из корневого `requests[]` ответа `GetOrder` (`type`, `state` ACCEPTED/WAITING/SUCCESSFUL/INVALID,
+  `date_time`, `errors[]{code,message}`); HTTP 202 при создании ≠ заказ создан — итог виден по `state`
+- Интеграционный тест `integration_pvz_test.go` (build tag `integration`): E2E ПВЗ→ПВЗ
+  тариф 136 c опросом `requests[0].state` и отменой пока `CREATED`
+- **Фильтры списка ПВЗ**: `DeliveryPointsRequest` расширен (`code`, `country_code`, `region_code`,
+  `postal_code`, `fias_guid`, `have_cashless`, `have_cash`, `allowed_cod`, `is_dressing_room`,
+  `is_handout`, `is_reception`, `take_only`, `weight_max`, `weight_min`, `size`, `page`;
+  `weight_max`/`weight_min` — килограммы, `size`/`page` со значением <= 0 не отправляются)
+- **Новые поля ответа ПВЗ**: `DeliveryPoint.HaveCashless/HaveCash/AllowedCOD/IsDressingRoom` (bool),
+  `WeightMin/WeightMax` (`*float64`, кг; nil — поля нет в ответе), `OwnerCode`;
+  `PointLocation.CityCode`, `AddressFull`, `RegionCode`
+- Unit-тесты (httptest, без сети): создание/обновление заказа с ПВЗ, query-параметры `/v2/deliverypoints`,
+  разбор ответа ПВЗ и `GetOrder`
+
+### Changed
+- `Location` с любым заданным полем (например, только `city`) теперь отправляется в теле запроса;
+  раньше — только при заданных `Code` или `Address`
+- Валидатор заказов: `items` обязательны только при `type=1` (`online_store`);
+  для `delivery` (`type=2`) могут отсутствовать — заданные валидируются как раньше.
+  Габариты по-прежнему не проверяются локально (требования отданы CDEK)
+
+### Fixed
+- `ListDeliveryPoints`: query строится через `net/url.Values` — спецсимволы кодируются
+  (раньше строки склеивались вручную без кодирования)
+- Пустой `Location` больше не отправляется как пустой объект (`"to_location": {}` в `UpdateOrder`)
+- `from_location`/`to_location` при создании заказа: поля `fias_guid`, `postal_code`, `country_code`, `region`
+  больше не теряются
+- Парсер ответа ПВЗ: `city_code`/`region_code` вне диапазона int32 остаются 0 вместо переполнения
+- `URLSandbox` снова указывает на тестовый контур (`https://api.edu.cdek.ru`) —
+  константа ошибочно дублировала production URL
+- `OrderInfo.FromLocation`/`ToLocation` теперь заполняются из `entity.from_location`/`entity.to_location`
+  ответа `GetOrder` (`code`, `fias_guid`, `postal_code`, `country_code`, `region`, `city`, `address`)
+
+### Security
+- `docs/DEPLOYMENT.md`: примеры учётных данных заменены плейсхолдерами `<your-client-id>` / `<your-client-secret>`.
+
 ## [0.2.1] - 2026-02-15
 
 ### Added

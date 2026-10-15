@@ -1,0 +1,142 @@
+{
+  "entity": {
+    "calls": {},
+    "cdek_number": "10000000001",
+    "delivery_detail": {
+      "delivery_discount_percent": 0,
+      "delivery_discount_sum": 0,
+      "delivery_sum": 225,
+      "delivery_vat_rate": 22,
+      "delivery_vat_sum": 49.5,
+      "payment_info": [],
+      "total_sum": 279.07
+    },
+    "delivery_mode": "4",
+    "delivery_point": "ZLN5",
+    "delivery_recipient_cost": {
+      "value": 0
+    },
+    "from_location": {
+      "city": "Москва",
+      "city_uuid": "00000000-0000-4000-8000-000000000001",
+      "code": 44,
+      "country": "Россия",
+      "country_code": "RU",
+      "latitude": 55.825836,
+      "longitude": 37.431531,
+      "region": "Москва",
+      "region_code": 81
+    },
+    "has_reverse_order": false,
+    "is_client_return": false,
+    "is_return": false,
+    "is_reverse": false,
+    "items_cost_currency": "RUB",
+    "number": "fb-610713776552255",
+    "packages": [
+      {
+        "barcode": "000787761725",
+        "comment": "REDACTED",
+        "height": 3,
+        "items": [
+          {
+            "amount": 1,
+            "cost": 500,
+            "delivery_amount": 0,
+            "excise": false,
+            "marking": "-",
+            "name": "REDACTED",
+            "payment": {
+              "value": 0
+            },
+            "return_item_detail": {},
+            "seller": {},
+            "ware_key": "11",
+            "weight": 150,
+            "weight_gross": 150
+          }
+        ],
+        "length": 12,
+        "number": "1",
+        "package_id": "00000000-0000-4000-8000-000000000002",
+        "weight": 150,
+        "weight_calc": 150,
+        "weight_volume": 65,
+        "width": 9
+      }
+    ],
+    "recipient": {
+      "company": "REDACTED",
+      "name": "REDACTED",
+      "passport_requirements_satisfied": false,
+      "phones": [
+        {
+          "number": "+70000000000"
+        }
+      ]
+    },
+    "recipient_currency": "RUB",
+    "seller": {
+      "inn": "7709033880",
+      "name": "REDACTED",
+      "ownership_form": "137",
+      "phone": "+70000000000"
+    },
+    "sender": {
+      "company": "REDACTED",
+      "name": "REDACTED",
+      "passport_requirements_satisfied": false,
+      "phones": [
+        {
+          "number": "+70000000000"
+        }
+      ]
+    },
+    "services": [
+      {
+        "code": "INSURANCE",
+        "discount_percent": 0,
+        "discount_sum": 0,
+        "parameter": "500",
+        "sum": 3.75,
+        "total_sum": 4.57,
+        "vat_rate": 22,
+        "vat_sum": 0.82
+      }
+    ],
+    "shipment_point": "MSK553",
+    "statuses": [
+      {
+        "city": "Офис СДЭК",
+        "code": "CREATED",
+        "date_time": "2026-10-15T11:53:43+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      },
+      {
+        "city": "Офис СДЭК",
+        "code": "ACCEPTED",
+        "date_time": "2026-10-15T11:53:42+0000",
+        "deleted": false,
+        "name": "REDACTED"
+      }
+    ],
+    "tariff_code": 136,
+    "to_location": {
+      "address": "REDACTED",
+      "city": "Зеленоград",
+      "city_uuid": "00000000-0000-4000-8000-000000000003",
+      "code": 184,
+      "country": "Россия",
+      "country_code": "RU",
+      "latitude": 55.99076,
+      "longitude": 37.222412,
+      "region": "Москва",
+      "region_code": 81
+    },
+    "type": 1,
+    "uuid": "00000000-0000-4000-8000-000000000004"
+  },
+  "related_entities": [],
+  "requests": []
+}
